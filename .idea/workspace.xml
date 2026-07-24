@@ -1,12 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="" />
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/notebook/demo.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/detection.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/event_detection.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/formation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/homography.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/metrics.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/tracking.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/train.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/valuation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_detection.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_metrics.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_tracking.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/conradmutai/soccer-vision-valuation.git",
+    "accountId": "96d00d2a-e02f-4c54-a612-5d517d3e454e"
+  }
+}]]></component>
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 5
 }]]></component>
@@ -16,6 +40,12 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main"
+  }
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

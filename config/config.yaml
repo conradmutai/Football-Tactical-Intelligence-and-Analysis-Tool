@@ -1,0 +1,11 @@
+path: ../data/dataset
+
+train: train/images
+val: valid/images
+test: test/images
+
+names:
+  0: Ball
+  1: Goalkeeper
+  2: Player
+  3: Referee

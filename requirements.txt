@@ -1,0 +1,5 @@
+ultralytics~=8.4.107
+python-dotenv~=1.2.2
+roboflow~=1.4.0
+opencv-python~=5.0.0.93
+SoccerNet~=0.1.62

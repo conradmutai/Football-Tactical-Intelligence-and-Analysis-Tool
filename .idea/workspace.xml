@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Created Detection File and Loaders">
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Detection File Complete">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tracking.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tracking.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,16 +47,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.detection.executor&quot;: &quot;Run&quot;,
-    &quot;Python.video_loader.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.detection.executor": "Run",
+    "Python.tracking.executor": "Run",
+    "Python.video_loader.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
-  <component name="RunManager" selected="Python.detection">
+}]]></component>
+  <component name="RunManager" selected="Python.tracking">
     <configuration name="detection" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Soccer Vision Valuation" />
       <option name="ENV_FILES" value="" />
@@ -70,6 +72,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/detection.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="tracking" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Soccer Vision Valuation" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/tracking.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -102,11 +126,13 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.tracking" />
       <item itemvalue="Python.detection" />
       <item itemvalue="Python.video_loader" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.tracking" />
         <item itemvalue="Python.detection" />
         <item itemvalue="Python.video_loader" />
       </list>
@@ -144,12 +170,21 @@
       <option name="project" value="LOCAL" />
       <updated>1785177021162</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Detection File Complete">
+      <option name="closed" value="true" />
+      <created>1785236605250</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1785236605250</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Set Up Project Structure" />
     <MESSAGE value="Created Detection File and Loaders" />
-    <option name="LAST_COMMIT_MESSAGE" value="Created Detection File and Loaders" />
+    <MESSAGE value="Detection File Complete" />
+    <option name="LAST_COMMIT_MESSAGE" value="Detection File Complete" />
   </component>
 </project>

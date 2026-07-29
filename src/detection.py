@@ -19,4 +19,3 @@ def detect():
             optimizer="AdamW",
             device="mps",
             name="train-7")
-

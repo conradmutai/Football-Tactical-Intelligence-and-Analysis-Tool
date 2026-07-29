@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Detection File Complete">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detection.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tracking.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tracking.py" afterDir="false" />
-    </list>
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Tracking complete and detection edited" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -178,13 +173,30 @@
       <option name="project" value="LOCAL" />
       <updated>1785236605250</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Tracking complete and detection edited">
+      <option name="closed" value="true" />
+      <created>1785257323678</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1785257323678</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Tracking complete and detection edited">
+      <option name="closed" value="true" />
+      <created>1785257335606</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1785257335606</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Set Up Project Structure" />
     <MESSAGE value="Created Detection File and Loaders" />
     <MESSAGE value="Detection File Complete" />
-    <option name="LAST_COMMIT_MESSAGE" value="Detection File Complete" />
+    <MESSAGE value="Tracking complete and detection edited" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tracking complete and detection edited" />
   </component>
 </project>

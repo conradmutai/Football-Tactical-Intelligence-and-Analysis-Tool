@@ -1,31 +1,18 @@
 import json
-
 import cv2
-import torch
-
-from pathlib import Path
 
 from ultralytics import YOLO
 
-# creating a video path for testing
-VIDEO_PATH = Path(__file__).resolve().parent.parent / "data" / "soccernet" / "england_epl" / "2014-2015" / "2015-02-21 - 18-00 Chelsea 1 - 1 Burnley" / "1_720p.mkv"
 
-# creating a weight path for testing
-WEIGHTS_PATH = Path(__file__).resolve().parent / "runs" / "detect" / "train-7" / "weights" / "best.pt"
-
-# tracking output pathway
-TRACKING_OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "tracking_output" / "2015-02-21_chelsea_burnley.jsonl"
-
-
-def tracking(weights_path, video_path):
+def tracking(weights_path, video_path, tracking_path):
     model = YOLO(str(weights_path))
     cap = cv2.VideoCapture(str(video_path))
     fps = cap.get(cv2.CAP_PROP_FPS)
 
-    idx = 0
+    idx = 1
 
     # opening and writing in the tracking json
-    with open(str(TRACKING_OUTPUT_PATH), "w") as f:
+    with open(str(tracking_path), "w") as f:
         # goes over each frame in the video capture
         while cap.isOpened():
             success, frame = cap.read()
@@ -53,7 +40,3 @@ def tracking(weights_path, video_path):
 
     cap.release()
     cv2.destroyAllWindows()
-
-
-if __name__ == '__main__':
-    tracking(WEIGHTS_PATH, VIDEO_PATH)

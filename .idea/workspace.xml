@@ -4,12 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Tracking complete and detection edited">
-      <change afterPath="$PROJECT_DIR$/src/pitch_detection.py" afterDir="false" />
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="homography.py initialized and pitch_detection.py completed">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_loader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detection.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/homography.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/homography.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tracking.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tracking.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,6 +51,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Python.detection.executor": "Run",
+    "Python.homography.executor": "Run",
     "Python.pitch_detection.executor": "Run",
     "Python.tracking.executor": "Run",
     "Python.video_loader.executor": "Run",
@@ -59,7 +60,7 @@
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.pitch_detection">
+  <component name="RunManager" selected="Python.homography">
     <configuration name="detection" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Soccer Vision Valuation" />
       <option name="ENV_FILES" value="" />
@@ -74,6 +75,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/detection.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="homography" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Soccer Vision Valuation" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/homography.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -150,6 +173,7 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.homography" />
       <item itemvalue="Python.pitch_detection" />
       <item itemvalue="Python.tracking" />
       <item itemvalue="Python.detection" />
@@ -157,6 +181,7 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.homography" />
         <item itemvalue="Python.pitch_detection" />
         <item itemvalue="Python.tracking" />
         <item itemvalue="Python.detection" />
@@ -228,7 +253,15 @@
       <option name="project" value="LOCAL" />
       <updated>1785346799108</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="homography.py initialized and pitch_detection.py completed">
+      <option name="closed" value="true" />
+      <created>1785428922691</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1785428922691</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -236,6 +269,7 @@
     <MESSAGE value="Created Detection File and Loaders" />
     <MESSAGE value="Detection File Complete" />
     <MESSAGE value="Tracking complete and detection edited" />
-    <option name="LAST_COMMIT_MESSAGE" value="Tracking complete and detection edited" />
+    <MESSAGE value="homography.py initialized and pitch_detection.py completed" />
+    <option name="LAST_COMMIT_MESSAGE" value="homography.py initialized and pitch_detection.py completed" />
   </component>
 </project>

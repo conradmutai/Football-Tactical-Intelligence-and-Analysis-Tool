@@ -10,12 +10,13 @@ def detect():
     model = YOLO("yolov9s.pt")  # YOLO v9 tiny (pre-trained model)
 
     # training the model
-    if __name__ == '__main__':
-        results = model.train(
-            data=str(CONFIG_PATH),
-            epochs=100,
-            imgsz=640,
-            batch=16,
-            optimizer="AdamW",
-            device="mps",
-            name="train-7")
+    model.train(
+        data=str(CONFIG_PATH),
+        epochs=100,
+        imgsz=640,
+        batch=16,
+        optimizer="AdamW",
+        device="mps",
+        name="train-7")
+
+

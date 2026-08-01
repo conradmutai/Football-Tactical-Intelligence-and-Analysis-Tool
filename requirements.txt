@@ -6,3 +6,4 @@ SoccerNet~=0.1.62
 torch~=2.13.0
 numpy~=2.3.5
 supervision~=0.29.1
+sports~=0.1.0

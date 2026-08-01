@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="homography.py changed to pitch_keypoints.py, and cleaned other files">
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="homography.py finished">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/homography.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/homography.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pitch_keypoints.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pitch_keypoints.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,7 +59,7 @@
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.pitch_keypoints">
+  <component name="RunManager" selected="Python.homography">
     <configuration name="detection" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Soccer Vision Valuation" />
       <option name="ENV_FILES" value="" />
@@ -72,6 +74,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/detection.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="homography" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Soccer Vision Valuation" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/homography.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -146,43 +170,20 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="video_loader" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Soccer Vision Valuation" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="Python 3.12 (Soccer Vision Valuation)" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/video_loader.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <list>
+      <item itemvalue="Python.homography" />
       <item itemvalue="Python.pitch_detection" />
       <item itemvalue="Python.pitch_keypoints" />
       <item itemvalue="Python.tracking" />
       <item itemvalue="Python.detection" />
-      <item itemvalue="Python.video_loader" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.homography" />
         <item itemvalue="Python.pitch_keypoints" />
         <item itemvalue="Python.pitch_detection" />
         <item itemvalue="Python.tracking" />
         <item itemvalue="Python.detection" />
-        <item itemvalue="Python.video_loader" />
       </list>
     </recent_temporary>
   </component>
@@ -266,7 +267,15 @@
       <option name="project" value="LOCAL" />
       <updated>1785440546765</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="homography.py finished">
+      <option name="closed" value="true" />
+      <created>1785488199592</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1785488199592</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -276,6 +285,7 @@
     <MESSAGE value="Tracking complete and detection edited" />
     <MESSAGE value="homography.py initialized and pitch_detection.py completed" />
     <MESSAGE value="homography.py changed to pitch_keypoints.py, and cleaned other files" />
-    <option name="LAST_COMMIT_MESSAGE" value="homography.py changed to pitch_keypoints.py, and cleaned other files" />
+    <MESSAGE value="homography.py finished" />
+    <option name="LAST_COMMIT_MESSAGE" value="homography.py finished" />
   </component>
 </project>

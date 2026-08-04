@@ -5,9 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="homography.py finished">
+      <change afterPath="$PROJECT_DIR$/src/formulas.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/homography.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/homography.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/formation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/formation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pitch_keypoints.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pitch_keypoints.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -52,6 +53,7 @@
     "Python.detection.executor": "Run",
     "Python.homography.executor": "Run",
     "Python.pitch_detection.executor": "Run",
+    "Python.pitch_keypoints.executor": "Run",
     "Python.tracking.executor": "Run",
     "Python.video_loader.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -275,7 +277,15 @@
       <option name="project" value="LOCAL" />
       <updated>1785488199592</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="homography.py finished">
+      <option name="closed" value="true" />
+      <created>1785584801174</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1785584801174</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

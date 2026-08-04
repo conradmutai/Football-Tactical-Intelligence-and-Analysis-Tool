@@ -64,3 +64,9 @@ def keypoint_detection(video_path, weight_path, keypoint_output_path):
 
             frame_number += 1
 
+            if frame_number >= 500:
+                break
+
+
+if __name__ == '__main__':
+    keypoint_detection(VIDEO_PATH, WEIGHTS_PATH, KEYPOINT_OUTPUT_PATH)

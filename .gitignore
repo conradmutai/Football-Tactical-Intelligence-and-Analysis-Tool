@@ -1,2 +1,29 @@
-*.env
-data/dataset
+# environment
+.env
+venv/
+.venv/
+
+# datasets
+data/dataset/
+data/dataset_pose/
+
+# generated outputs
+data/tracking_output/
+data/*.jsonl
+
+# video files (not license-clear to commit)
+data/*.mp4
+data/*.mov
+data/videos/
+
+# model weights
+*.pt
+runs/
+
+# python housekeeping
+__pycache__/
+*.pyc
+.DS_Store
+
+# IDE
+.idea/

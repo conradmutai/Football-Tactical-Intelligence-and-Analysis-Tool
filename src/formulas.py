@@ -51,5 +51,5 @@ def wasserstein_distance_squared(w_dist_matrix):
 
 
 def bayesian_classification(mu_p_c, mu_p_o, sum_p_c, sum_p_o):  # mean and sum of player p and cluster/ mean and sum of player p and observation o
-    prob_
+    ...
 

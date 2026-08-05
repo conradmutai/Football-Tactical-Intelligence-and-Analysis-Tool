@@ -1,3 +1,6 @@
+import json
+import random
+from collections import defaultdict
 from typing import List
 from sklearn.cluster import KMeans
 
@@ -56,20 +59,68 @@ class TeamClassifier:
         return self.cluster_model.predict(hs_values)
 
 
+# Returns a cropped player image
 def extract_crop(frame: np.ndarray, bbox: dict) -> np.ndarray:
-    ...
+    x1, y1, x2, y2 = np.array(bbox).astype(int)  # extracts the xyxy details from bbox and converts it to a numpy array then int
+    frame = frame[y1:y2, x1:x2]  # modifies the frame to fit the constraints of the bbox
+    return frame
 
 
+# verifies if a character is a referee and if so it excludes them from classification
 def is_referee(record: dict) -> bool:
-    ...
+    person_class = record["class"]
+
+    if person_class is not "referee":
+        return False
+
+    return True
 
 
 def load_tracking_records(video_id: str):
-    ...
+    # creates a dictionary for the records
+    records = defaultdict()
+
+    # opens file for video id and goes line by line adding clean_lines to the record
+    with open(video_id, "r") as file:
+        for line in file:
+            clean_line = line.strip()
+
+            if not clean_line:
+                continue
+
+            parsed = json.loads(clean_line)
+            records[parsed["frame"]] = (json.loads(clean_line))  # adds clean line to records
+
+    return records
 
 
+# creates a sample of crops which will then be fed in for feeding
 def sample_crops_for_fitting(frames_source, tracking_records, n_frames: int = 50):
-    ...
+    # gets the total amount of frames
+    total_frames = len(frames_source)
+
+    # grabs the minimum amount of frames between the two and then creates indices on what to select
+    n_frames = min(n_frames, total_frames)
+    sampled_indices = random.sample(range(total_frames), n_frames)
+
+    # empty list for the list of crops
+    crops = []
+
+    # iterates over the frame indexes in the sample indices and then selects the crops for fitting
+    for frame_idx in sampled_indices:
+        frame = frames_source[frame_idx]  # or however you seek/read this frame
+        record = tracking_records[frame_idx]
+
+        # checks for if there is a detection
+        for detection in record["detections"]:
+            if is_referee(detection):
+                continue
+
+            # extracts a crop
+            crop = extract_crop(frame, detection["bbox"])
+            crops.append(crop)
+
+    return crops
 
 
 def assign_teams_for_video(video_path, video_id):

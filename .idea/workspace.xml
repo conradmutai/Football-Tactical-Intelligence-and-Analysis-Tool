@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="homography.py finished">
-      <change afterPath="$PROJECT_DIR$/src/formulas.py" afterDir="false" />
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Created formulas.py">
+      <change afterPath="$PROJECT_DIR$/src/team_assignment.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/formation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/formation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pitch_keypoints.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pitch_keypoints.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/formulas.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/formulas.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -285,7 +284,15 @@
       <option name="project" value="LOCAL" />
       <updated>1785584801174</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Created formulas.py">
+      <option name="closed" value="true" />
+      <created>1785839882020</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1785839882020</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -296,6 +303,7 @@
     <MESSAGE value="homography.py initialized and pitch_detection.py completed" />
     <MESSAGE value="homography.py changed to pitch_keypoints.py, and cleaned other files" />
     <MESSAGE value="homography.py finished" />
-    <option name="LAST_COMMIT_MESSAGE" value="homography.py finished" />
+    <MESSAGE value="Created formulas.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="Created formulas.py" />
   </component>
 </project>

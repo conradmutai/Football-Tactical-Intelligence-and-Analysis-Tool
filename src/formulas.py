@@ -23,10 +23,10 @@ def wasserstein_distance(m_1, m_2, c_1, c_2):  # mean player 1/2, covariance pla
 
         # Handle small imaginary artifacts from numerical imprecision
         if np.iscomplexobj(sqrt_c_2):
-            sqrt_c_1 = sqrt_c_2.real
+            sqrt_c_2 = sqrt_c_2.real
 
         # handles the inner matrix calculations to feed into the general covariance calculations
-        inner_matrix = sqrt_c_2 @ c_2 @ sqrt_c_2
+        inner_matrix = sqrtm(sqrt_c_2 @ c_1 @ sqrt_c_2)
         if np.iscomplexobj(inner_matrix):
             inner_matrix = inner_matrix.real
 
@@ -50,7 +50,6 @@ def wasserstein_distance_squared(w_dist_matrix):
     return cost_matrix[row_ind, col_ind].sum()
 
 
-
-
-
+def bayesian_classification(mu_p_c, mu_p_o, sum_p_c, sum_p_o):  # mean and sum of player p and cluster/ mean and sum of player p and observation o
+    prob_
 

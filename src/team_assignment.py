@@ -9,7 +9,7 @@ import numpy as np
 
 
 # Handles the identification of teams to enable proper formation analysis
-class TeamClassifier:
+class TeamAssigner:
     def __init__(self, n_clusters: int = 2, random_state: int = 42):  # parameters are fed into KMeans to make cluster model
         self.cluster_model = KMeans(n_clusters=n_clusters, random_state=random_state)
         self.is_fitted = False
@@ -52,7 +52,8 @@ class TeamClassifier:
             raise RuntimeError(".predict() was ran before .fit()")
 
         if len(crops) == 0:
-            return np.ndarray([])
+            return (np.
+                    array([]))
 
         # recreates hue and saturation values and then predicts with said values
         hs_values = self.extract_frame(crops)
@@ -70,7 +71,7 @@ def extract_crop(frame: np.ndarray, bbox: dict) -> np.ndarray:
 def is_referee(record: dict) -> bool:
     person_class = record["class"]
 
-    if person_class is not "referee":
+    if person_class != "referee":
         return False
 
     return True
@@ -95,9 +96,9 @@ def load_tracking_records(video_id: str):
 
 
 # creates a sample of crops which will then be fed in for feeding
-def sample_crops_for_fitting(frames_source, tracking_records, n_frames: int = 50):
+def sample_crops_for_fitting(cap, tracking_records, n_frames: int = 50):
     # gets the total amount of frames
-    total_frames = len(frames_source)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # grabs the minimum amount of frames between the two and then creates indices on what to select
     n_frames = min(n_frames, total_frames)
@@ -108,20 +109,86 @@ def sample_crops_for_fitting(frames_source, tracking_records, n_frames: int = 50
 
     # iterates over the frame indexes in the sample indices and then selects the crops for fitting
     for frame_idx in sampled_indices:
-        frame = frames_source[frame_idx]  # or however you seek/read this frame
-        record = tracking_records[frame_idx]
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+        success, frame = cap.read()
+        if not success:
+            continue
+
+        record = tracking_records.get(frame_idx + 1)  # tracking.py's frame numbers start at 1
+        if record is None:
+            continue
 
         # checks for if there is a detection
         for detection in record["detections"]:
             if is_referee(detection):
                 continue
-
-            # extracts a crop
             crop = extract_crop(frame, detection["bbox"])
             crops.append(crop)
 
     return crops
 
 
-def assign_teams_for_video(video_path, video_id):
-    ...
+def assign_teams_for_video(video_path, video_id, output_path):
+    # grabs tracking record from the video id
+    records = load_tracking_records(video_id)
+
+    # makes the video into a cv2 capture and gathers total frames and fps
+    cap = cv2.VideoCapture(str(video_path))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    fitting_sample = sample_crops_for_fitting(cap=cap, tracking_records=records)
+    team_assigner = TeamAssigner()
+    team_assigner.fit(fitting_sample)
+
+    # sets the cap back to frame 0
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+    frame_idx = 1
+
+    with open(str(output_path), "w") as f:
+        while cap.isOpened():
+            # grabs frame from capture and grabs a record for a certain frame
+            success, frame = cap.read()
+
+            if not success:
+                break
+
+            # gathers the frame record utilizing the frame index
+            frame_record = records[frame_idx]
+
+            # gathers the crops
+            crops = []
+            track_ids = []
+
+            # loops over all the detections in a frame record
+            for detection in frame_record["detections"]:
+                if is_referee(detection):
+                    continue
+                crop = extract_crop(frame, detection["bbox"])
+                crops.append(crop)
+                track_ids.append(detection["track_id"])
+
+            # gathers hue and saturation values from frame
+            team_labels = team_assigner.predict(crops)
+
+            # creates a list of players and has a tracking id for each player and labels their team
+            players = [
+                {"track_id": tid, "team": int(label)}
+                for tid, label in zip(track_ids, team_labels)
+            ]
+
+            # record is then created and information is then stored
+            record = {
+                "frame": frame_idx,
+                "timestamp": frame_idx / fps,
+                "players": players
+            }
+
+            f.write(json.dumps(record) + "\n")
+
+            frame_idx += 1
+
+    # clears the frames
+    cap.release()
+

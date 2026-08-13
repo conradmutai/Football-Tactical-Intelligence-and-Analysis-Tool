@@ -1,21 +1,11 @@
 import json
 import random
 from collections import defaultdict
-from pathlib import Path
 from typing import List
 from sklearn.cluster import KMeans
 
 import cv2
 import numpy as np
-
-
-# Video Path for testing
-VIDEO_PATH = Path(__file__).resolve().parent.parent / "data" / "soccernet" / "england_epl" / "2014-2015" / "2015-02-21 - 18-00 Chelsea 1 - 1 Burnley" / "1_720p.mkv"
-
-# Tracking Path for testing
-TRACKING_OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "tracking_output" / "2015-02-21_chelsea_burnley.jsonl"
-
-TEAM_ASSIGNMENT_OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "team_assignment_output" / "2015-02-21_chelsea_burnley.jsonl"
 
 
 # Handles the identification of teams to enable proper formation analysis
@@ -199,12 +189,6 @@ def assign_teams_for_video(video_path, tracking_path, output_path):
 
             frame_idx += 1
 
-            if frame_idx >= 1000:
-                break
-
     # clears the frames
     cap.release()
 
-
-if __name__ == '__main__':
-    assign_teams_for_video(VIDEO_PATH, TRACKING_OUTPUT_PATH, TEAM_ASSIGNMENT_OUTPUT_PATH)

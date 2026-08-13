@@ -4,16 +4,6 @@ import numpy as np
 import supervision as sv
 
 from ultralytics import YOLO
-from pathlib import Path
-
-# Video Path for testing
-VIDEO_PATH = Path(__file__).resolve().parent.parent / "data" / "soccernet" / "england_epl" / "2014-2015" / "2015-02-21 - 18-00 Chelsea 1 - 1 Burnley" / "1_720p.mkv"
-
-# creating a weight path for testing
-WEIGHTS_PATH = Path(__file__).resolve().parent / "runs" / "pose" / "train-pose-2" / "weights" / "best.pt"
-
-# Tracking Path for testing
-KEYPOINT_OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "keypoint_output" / "2015-02-21_chelsea_burnley.jsonl"
 
 
 def keypoint_detection(video_path, weight_path, keypoint_output_path):
@@ -64,9 +54,3 @@ def keypoint_detection(video_path, weight_path, keypoint_output_path):
 
             frame_number += 1
 
-            if frame_number >= 1000:
-                break
-
-
-if __name__ == '__main__':
-    keypoint_detection(VIDEO_PATH, WEIGHTS_PATH, KEYPOINT_OUTPUT_PATH)

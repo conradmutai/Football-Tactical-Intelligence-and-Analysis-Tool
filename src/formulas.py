@@ -51,5 +51,27 @@ def wasserstein_distance_squared(w_dist_matrix):
 
 
 def bayesian_classification(mu_p_c, mu_p_o, sum_p_c, sum_p_o):  # mean and sum of player p and cluster/ mean and sum of player p and observation o
-    ...
+    mu_p_c, mu_p_o = np.asarray(mu_p_c), np.asarray(mu_p_o)
+    sum_p_c, sum_p_o = np.asarray(sum_p_c), np.asarray(sum_p_o)
+
+    # mean difference — this is the "x" the combined Gaussian is evaluated at
+    diff = mu_p_c - mu_p_o
+
+    # combined covariance
+    combined_cov = sum_p_c + sum_p_o
+
+    # dimensionality (2 for x,y pitch coordinates)
+    k = diff.shape[0]
+
+    # determinant and inverse of the combined covariance
+    det_cov = np.linalg.det(combined_cov)
+    inv_cov = np.linalg.inv(combined_cov)
+
+    # normalizing constant: 1 / sqrt((2*pi)^k * |combined_cov|)
+    norm_const = 1.0 / np.sqrt(((2 * np.pi) ** k) * det_cov)
+
+    # exponent: -0.5 * diff^T * inv_cov * diff  (Mahalanobis distance squared)
+    exponent = -0.5 * diff.T @ inv_cov @ diff
+
+    return norm_const * np.exp(exponent)
 

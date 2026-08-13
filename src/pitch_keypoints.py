@@ -64,7 +64,7 @@ def keypoint_detection(video_path, weight_path, keypoint_output_path):
 
             frame_number += 1
 
-            if frame_number >= 500:
+            if frame_number >= 1000:
                 break
 
 

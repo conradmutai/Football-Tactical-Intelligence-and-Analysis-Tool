@@ -1,5 +1,5 @@
 # environment
-.env
+.env/
 venv/
 .venv/
 
@@ -8,6 +8,9 @@ data/dataset/
 data/dataset_pose/
 
 # generated outputs
+data/soccernet/
+data/keypoint_output/
+data/team_assignment_output/
 data/tracking_output/
 data/*.jsonl
 

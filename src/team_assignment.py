@@ -1,11 +1,21 @@
 import json
 import random
 from collections import defaultdict
+from pathlib import Path
 from typing import List
 from sklearn.cluster import KMeans
 
 import cv2
 import numpy as np
+
+
+# Video Path for testing
+VIDEO_PATH = Path(__file__).resolve().parent.parent / "data" / "soccernet" / "england_epl" / "2014-2015" / "2015-02-21 - 18-00 Chelsea 1 - 1 Burnley" / "1_720p.mkv"
+
+# Tracking Path for testing
+TRACKING_OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "tracking_output" / "2015-02-21_chelsea_burnley.jsonl"
+
+TEAM_ASSIGNMENT_OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "team_assignment_output" / "2015-02-21_chelsea_burnley.jsonl"
 
 
 # Handles the identification of teams to enable proper formation analysis
@@ -71,18 +81,18 @@ def extract_crop(frame: np.ndarray, bbox: dict) -> np.ndarray:
 def is_referee(record: dict) -> bool:
     person_class = record["class"]
 
-    if person_class != "referee":
+    if person_class != "Referee":
         return False
 
     return True
 
 
-def load_tracking_records(video_id: str):
+def load_tracking_records(tracking_path: str):
     # creates a dictionary for the records
     records = defaultdict()
 
     # opens file for video id and goes line by line adding clean_lines to the record
-    with open(video_id, "r") as file:
+    with open(tracking_path, "r") as file:
         for line in file:
             clean_line = line.strip()
 
@@ -128,9 +138,9 @@ def sample_crops_for_fitting(cap, tracking_records, n_frames: int = 50):
     return crops
 
 
-def assign_teams_for_video(video_path, video_id, output_path):
+def assign_teams_for_video(video_path, tracking_path, output_path):
     # grabs tracking record from the video id
-    records = load_tracking_records(video_id)
+    records = load_tracking_records(tracking_path)
 
     # makes the video into a cv2 capture and gathers total frames and fps
     cap = cv2.VideoCapture(str(video_path))
@@ -189,6 +199,12 @@ def assign_teams_for_video(video_path, video_id, output_path):
 
             frame_idx += 1
 
+            if frame_idx >= 1000:
+                break
+
     # clears the frames
     cap.release()
 
+
+if __name__ == '__main__':
+    assign_teams_for_video(VIDEO_PATH, TRACKING_OUTPUT_PATH, TEAM_ASSIGNMENT_OUTPUT_PATH)

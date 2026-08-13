@@ -5,6 +5,9 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/data/dataset" />
       <excludeFolder url="file://$MODULE_DIR$/data/dataset_pose" />
+      <excludeFolder url="file://$MODULE_DIR$/data/keypoint_output" />
+      <excludeFolder url="file://$MODULE_DIR$/data/soccernet" />
+      <excludeFolder url="file://$MODULE_DIR$/data/team_assignment_output" />
       <excludeFolder url="file://$MODULE_DIR$/data/tracking_output" />
       <excludeFolder url="file://$MODULE_DIR$/src/runs" />
     </content>

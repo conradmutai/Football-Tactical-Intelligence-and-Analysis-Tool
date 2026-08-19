@@ -9,10 +9,10 @@ from src.homography import build_transformer_for_frame
 
 
 # euclidian distance calculation
-def eculidean_distance(point_a: np.ndarray, point_b: np.ndarray) -> float:
+def euclidian_distance(point_a: np.ndarray, point_b: np.ndarray) -> float:
     x_diff = point_b[0] - point_a[0]
     y_diff = point_b[1] - point_a[1]
-    dist = np.sqrt(np.square(y_diff) - np.square(x_diff))
+    dist = np.sqrt(np.square(y_diff) + np.square(x_diff))
     return dist
 
 
@@ -24,7 +24,7 @@ def find_nearest_player(ball_position: np.ndarray, player_position: dict) -> Opt
 
     # iterates through all player positions
     for track_id, player_pos in player_position.items():
-        dist = eculidean_distance(ball_position, player_pos)
+        dist = euclidian_distance(ball_position, player_pos)
 
         # compares the distances and choosing the min distance
         if dist < min_dist:
@@ -72,9 +72,53 @@ def detect_possession_for_frame(ball_pos: Optional[np.ndarray], player_positions
     return record
 
 
-def build_possession_windows(per_frame_possession: List[Optional[dict]], min_durations: int = ...):
+def build_possession_windows(per_frame_possession: List[Optional[dict]], min_duration_frames: int = 10) -> dict:
+    # creates return record
+    record = defaultdict()
+
+    window = window_start = 1  # initializing all to 1
+    team = per_frame_possession[0]["team"]  # initial team
+    last_frame_num = None
+
     for frame_possession in per_frame_possession:
-        ...
+        # skips frames where no one is in possession or when in duel
+        if frame_possession["status"] == "no-one in possession" or frame_possession["status"] == "in-duel":
+            continue
+
+        # initializes factors for checks
+        current_team = frame_possession["team"]
+        frame_num = frame_possession["frame"]
+        duration = frame_num - window_start
+
+        if current_team != team:
+            # if the ball remains in possession with a team for a longer period of time then the window is added to
+            # the record
+            if duration >= min_duration_frames:
+                record[window] = record[window] = {
+                    "window_num": window,
+                    "team_in_possession": team,
+                    "start_frame": window_start,
+                    "end_frame": frame_num
+                }
+
+                window += 1
+
+            # starts a new window and now focuses on the new team in possession
+            window_start = frame_num
+            team = current_team
+
+        last_frame_num = frame_num
+
+    final_duration = last_frame_num - window_start
+    if final_duration >= min_duration_frames:
+        record[window] = {
+            "window_num": window,
+            "team_in_possession": team,
+            "start_frame": window_start,
+            "end_frame": last_frame_num
+        }
+
+    return record
 
 
 def load_joined_positions(tracking_path, keypoint_output_path, team_assignment_path) -> dict:
@@ -125,29 +169,29 @@ def load_joined_positions(tracking_path, keypoint_output_path, team_assignment_p
 
 #
 def run_event_detection(tracking_path, keypoint_output_path, team_assignment_path, output_path):
+    # loads the joined positions
     records = load_joined_positions(tracking_path, keypoint_output_path, team_assignment_path)
 
+    # creates list for holding all possession frames
     per_frame_possession = []
 
+    # iterates through all the frames in the records (the num of keys)
     for frame in records.keys():
         record_frame = records[frame]
 
-        possession_for_frame = detect_possession_for_frame(record_frame["ball_position"], record_frame[frame], record_frame["player_teams"], r_possession=1.5, r_duel=2.5)
-        per_frame_possession.append(possession_for_frame)
+        # detects the possession for each frame
+        possession_for_frame = detect_possession_for_frame(record_frame["ball_position"], record_frame["player_positions"], record_frame["player_teams"], r_possession=1.5, r_duel=2.5)
 
+        possession_for_frame["frame"] = frame
+        per_frame_possession.append(possession_for_frame)  # appends the possession in the frame into a list
+
+    # builds out the possession windows
     possession_windows = build_possession_windows(per_frame_possession)
 
-    frame_num = 1
+    # writes it into a file
     with open(str(output_path), "w") as f:
         for window in possession_windows:
-            record = {
-                "frame": frame_num,
-                "possession_window": window
-            }
-
-            f.write(json.dumps(record) + "\n")
-
-            frame_num += 1
+            f.write(json.dumps(window) + "\n")
 
 
 # helper function which skims a jsonl file of records and returns a dict

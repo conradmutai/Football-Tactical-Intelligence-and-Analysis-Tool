@@ -109,6 +109,7 @@ def build_possession_windows(per_frame_possession: List[Optional[dict]], min_dur
 
         last_frame_num = frame_num
 
+    # makes a final duration window for possession, so it is accounted
     final_duration = last_frame_num - window_start
     if final_duration >= min_duration_frames:
         record[window] = {

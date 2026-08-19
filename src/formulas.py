@@ -39,7 +39,7 @@ def wasserstein_distance(m_1, m_2, c_1, c_2):  # mean player 1/2, covariance pla
     return np.sqrt(np.maximum(0.0, w_dist_sq))
 
 
-def wasserstein_distance_squared(w_dist_matrix):
+def wasserstein_distance_squared(w_dist_matrix) -> np.ndarray:
     # Computes total minimum squared Wasserstein distance for linear sum assignment.
     cost_matrix = np.square(np.asarray(w_dist_matrix))
 
@@ -50,7 +50,7 @@ def wasserstein_distance_squared(w_dist_matrix):
     return cost_matrix[row_ind, col_ind].sum()
 
 
-def bayesian_classification(mu_p_c, mu_p_o, sum_p_c, sum_p_o):  # mean and sum of player p and cluster/ mean and sum of player p and observation o
+def bayesian_classification(mu_p_c, mu_p_o, sum_p_c, sum_p_o) -> np.ndarray:  # mean and sum of player p and cluster/ mean and sum of player p and observation o
     mu_p_c, mu_p_o = np.asarray(mu_p_c), np.asarray(mu_p_o)
     sum_p_c, sum_p_o = np.asarray(sum_p_c), np.asarray(sum_p_o)
 

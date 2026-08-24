@@ -218,25 +218,3 @@ def load_records(file_path) -> dict:
             records[parsed["frame"]] = json.loads(clean_line)
 
     return records
-
-
-if __name__ == '__main__':
-    # TESTING FILES
-    KEYPOINT_OUTPUT_PATH = Path(
-        __file__).resolve().parent.parent / "data" / "keypoint_output" / "2015-02-21_chelsea_burnley.jsonl"
-    TRACKING_PATH = Path(
-        __file__).resolve().parent.parent / "data" / "tracking_output" / "2015-02-21_chelsea_burnley.jsonl"
-    TEAM_ASSIGNMENT_PATH = Path(
-        __file__).resolve().parent.parent / "data" / "team_assignment_output" / "2015-02-21_chelsea_burnley.jsonl"
-    OUTPUT_PATH = Path(
-        __file__).resolve().parent.parent / "data" / "event_detection_output" / "2015-02-21_chelsea_burnley.jsonl"
-
-    run_event_detection(TRACKING_PATH, KEYPOINT_OUTPUT_PATH, TEAM_ASSIGNMENT_PATH, OUTPUT_PATH)
-
-    # quick sanity check without opening the file separately
-    with open(OUTPUT_PATH) as f:
-        windows = [json.loads(line) for line in f]
-
-    print(f"total windows: {len(windows)}")
-    for w in windows[:5]:
-        print(w)

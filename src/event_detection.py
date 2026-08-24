@@ -54,11 +54,11 @@ def detect_possession_for_frame(ball_pos: Optional[np.ndarray], player_positions
     nearest_id, min_dist = find_nearest_player(ball_pos, player_positions)
 
     # checks the ball to nearest player radius to determine the status of the ball in play
-    if r_duel < min_dist < r_possession:
-        status = "ball in transit"
-    elif min_dist < r_duel:  # ball is in duel radius
+    if min_dist <= r_possession:
+        status = "possession"
+    elif min_dist <= r_duel:
         status = "in-duel"
-    else:  # ball is far from anyone
+    else:
         status = "no-one in possession"
 
     # creates a dict
@@ -76,13 +76,21 @@ def build_possession_windows(per_frame_possession: List[Optional[dict]], min_dur
     # creates return record
     record = defaultdict()
 
-    window = window_start = 1  # initializing all to 1
-    team = per_frame_possession[0]["team"]  # initial team
+    window = 1  # initializing all to 1
+
+    # assign a team
+    first_valid = next(
+        fp for fp in per_frame_possession
+        if fp["status"] not in ("no-one in possession", "in-duel", "No Ball Detected")
+    )
+    window_start = first_valid["frame"]
+    team = first_valid["team"]
+
     last_frame_num = None
 
     for frame_possession in per_frame_possession:
         # skips frames where no one is in possession or when in duel
-        if frame_possession["status"] == "no-one in possession" or frame_possession["status"] == "in-duel":
+        if frame_possession["status"] in ("no-one in possession", "in-duel", "No Ball Detected"):
             continue
 
         # initializes factors for checks
@@ -132,7 +140,7 @@ def load_joined_positions(tracking_path, keypoint_output_path, team_assignment_p
     team_records = load_records(team_assignment_path)
 
     # grabs the common frames from all the different records
-    common_frames = tracking_records.keys() & transformers.keys() & team_records.keys()
+    common_frames = sorted(tracking_records.keys() & transformers.keys() & team_records.keys())
 
     # iterate over all the frames that are shared between the dicts
     for frame_num in common_frames:
@@ -181,7 +189,7 @@ def run_event_detection(tracking_path, keypoint_output_path, team_assignment_pat
         record_frame = records[frame]
 
         # detects the possession for each frame
-        possession_for_frame = detect_possession_for_frame(record_frame["ball_position"], record_frame["player_positions"], record_frame["player_teams"], r_possession=1.5, r_duel=2.5)
+        possession_for_frame = detect_possession_for_frame(record_frame["ball_position"], record_frame["player_positions"], record_frame["player_teams"], r_possession=150, r_duel=250)
 
         possession_for_frame["frame"] = frame
         per_frame_possession.append(possession_for_frame)  # appends the possession in the frame into a list
@@ -191,7 +199,7 @@ def run_event_detection(tracking_path, keypoint_output_path, team_assignment_pat
 
     # writes it into a file
     with open(str(output_path), "w") as f:
-        for window in possession_windows:
+        for window in possession_windows.values():
             f.write(json.dumps(window) + "\n")
 
 
@@ -210,3 +218,25 @@ def load_records(file_path) -> dict:
             records[parsed["frame"]] = json.loads(clean_line)
 
     return records
+
+
+if __name__ == '__main__':
+    # TESTING FILES
+    KEYPOINT_OUTPUT_PATH = Path(
+        __file__).resolve().parent.parent / "data" / "keypoint_output" / "2015-02-21_chelsea_burnley.jsonl"
+    TRACKING_PATH = Path(
+        __file__).resolve().parent.parent / "data" / "tracking_output" / "2015-02-21_chelsea_burnley.jsonl"
+    TEAM_ASSIGNMENT_PATH = Path(
+        __file__).resolve().parent.parent / "data" / "team_assignment_output" / "2015-02-21_chelsea_burnley.jsonl"
+    OUTPUT_PATH = Path(
+        __file__).resolve().parent.parent / "data" / "event_detection_output" / "2015-02-21_chelsea_burnley.jsonl"
+
+    run_event_detection(TRACKING_PATH, KEYPOINT_OUTPUT_PATH, TEAM_ASSIGNMENT_PATH, OUTPUT_PATH)
+
+    # quick sanity check without opening the file separately
+    with open(OUTPUT_PATH) as f:
+        windows = [json.loads(line) for line in f]
+
+    print(f"total windows: {len(windows)}")
+    for w in windows[:5]:
+        print(w)

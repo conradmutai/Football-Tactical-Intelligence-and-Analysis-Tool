@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Completed team_assignment.py">
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Finished event_detection.py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/event_detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/event_detection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/formation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/formation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,21 +50,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.detection.executor": "Run",
-    "Python.event_detection.executor": "Run",
-    "Python.homography.executor": "Run",
-    "Python.pitch_detection.executor": "Run",
-    "Python.pitch_keypoints.executor": "Run",
-    "Python.team_assignment.executor": "Run",
-    "Python.tracking.executor": "Run",
-    "Python.video_loader.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "test",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.detection.executor&quot;: &quot;Run&quot;,
+    &quot;Python.event_detection.executor&quot;: &quot;Run&quot;,
+    &quot;Python.homography.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pitch_detection.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pitch_keypoints.executor&quot;: &quot;Run&quot;,
+    &quot;Python.team_assignment.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tracking.executor&quot;: &quot;Run&quot;,
+    &quot;Python.video_loader.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/data/keypoint_output" />
@@ -335,7 +335,23 @@
       <option name="project" value="LOCAL" />
       <updated>1786390170331</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Fixes and Tests conducted event_detection.py">
+      <option name="closed" value="true" />
+      <created>1787586166640</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1787586166640</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Finished event_detection.py">
+      <option name="closed" value="true" />
+      <created>1787586224281</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1787586224281</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -351,6 +367,8 @@
     <MESSAGE value="Methods and classes further established in team_assignment.py" />
     <MESSAGE value="Fixed .gitignore" />
     <MESSAGE value="Completed team_assignment.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="Completed team_assignment.py" />
+    <MESSAGE value="Fixes and Tests conducted event_detection.py" />
+    <MESSAGE value="Finished event_detection.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="Finished event_detection.py" />
   </component>
 </project>

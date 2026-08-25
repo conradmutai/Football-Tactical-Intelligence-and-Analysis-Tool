@@ -10,6 +10,8 @@
       <excludeFolder url="file://$MODULE_DIR$/data/team_assignment_output" />
       <excludeFolder url="file://$MODULE_DIR$/data/tracking_output" />
       <excludeFolder url="file://$MODULE_DIR$/src/runs" />
+      <excludeFolder url="file://$MODULE_DIR$/data/event_detection_output" />
+      <excludeFolder url="file://$MODULE_DIR$/data/formation_output" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

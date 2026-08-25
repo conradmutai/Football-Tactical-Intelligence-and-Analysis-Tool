@@ -9,6 +9,8 @@ data/dataset_pose/
 
 # generated outputs
 data/soccernet/
+data/event_detection_output
+data/formation_output
 data/keypoint_output/
 data/team_assignment_output/
 data/tracking_output/

@@ -137,7 +137,9 @@ def average_positions_for_window(joined_positions: dict, start_frame: int, end_f
 
     # iterates through all frames in a window to see if the frame consists of valid player positions and teams
     for frame_num in range(start_frame, end_frame + 1):
-        frame_data = joined_positions[frame_num]
+        frame_data = joined_positions.get(frame_num)
+        if frame_data is None:
+            continue
 
         for track_id, positions in frame_data["player_positions"].items():
             if frame_data["player_teams"].get(track_id) == team:
@@ -156,7 +158,7 @@ def average_positions_for_window(joined_positions: dict, start_frame: int, end_f
 
 
 # classifies the formation for each window
-def classify_windows(possession_windows_path, tracking_path, keypoint_output_path, team_assignment_path) -> List[dict]:
+def classify_windows(possession_windows_path, tracking_path, keypoint_output_path, team_assignment_path, output_path):
     # loads the json file and the joined positions
     possession_windows = load_json(possession_windows_path)
     joined_per_frame_possession = load_joined_positions(tracking_path, keypoint_output_path, team_assignment_path)
@@ -191,7 +193,10 @@ def classify_windows(possession_windows_path, tracking_path, keypoint_output_pat
 
         result.append(record)
 
-    return result
+    # writes results out as JSONL, same pattern as tracking/team_assignment/event_detection
+    with open(str(output_path), "w") as f:
+        for record in result:
+            f.write(json.dumps(record) + "\n")
 
 
 # helper function which skims a jsonl file of records and returns a dict
@@ -209,3 +214,22 @@ def load_json(file_path) -> dict:
             records[parsed["window_num"]] = json.loads(clean_line)
 
     return records
+
+
+if __name__ == '__main__':
+    VIDEO_ID = "2015-02-21_chelsea_burnley"
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+    VIDEO_PATH = BASE_DIR / "data" / "soccernet" / "england_epl" / "2014-2015" / \
+                 "2015-02-21 - 18-00 Chelsea 1 - 1 Burnley" / "1_720p.mkv"
+
+    TRACKING_OUTPUT_PATH = BASE_DIR / "data" / "tracking_output" / f"{VIDEO_ID}.jsonl"
+    KEYPOINT_OUTPUT_PATH = BASE_DIR / "data" / "keypoint_output" / f"{VIDEO_ID}.jsonl"
+    TEAM_ASSIGNMENT_OUTPUT_PATH = BASE_DIR / "data" / "team_assignment_output" / f"{VIDEO_ID}.jsonl"
+    EVENT_DETECTION_OUTPUT_PATH = BASE_DIR / "data" / "event_detection_output" / f"{VIDEO_ID}.jsonl"
+    OUTPUT_PATH = BASE_DIR / "data" / "formation_output" / f"{VIDEO_ID}.jsonl"
+
+    classify_windows(
+        EVENT_DETECTION_OUTPUT_PATH, TRACKING_OUTPUT_PATH, KEYPOINT_OUTPUT_PATH, TEAM_ASSIGNMENT_OUTPUT_PATH,
+        OUTPUT_PATH
+    )

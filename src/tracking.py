@@ -4,7 +4,7 @@ import cv2
 from ultralytics import YOLO
 
 
-def tracking(weights_path, video_path, tracking_path):
+def tracking(weights_path, video_path, tracking_path, max_frames=None):
     model = YOLO(str(weights_path))
     cap = cv2.VideoCapture(str(video_path))
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -35,6 +35,9 @@ def tracking(weights_path, video_path, tracking_path):
                 f.write(json.dumps(record) + "\n")
 
                 idx += 1
+
+                if max_frames is not None and idx > max_frames:
+                    break
             else:
                 break
 

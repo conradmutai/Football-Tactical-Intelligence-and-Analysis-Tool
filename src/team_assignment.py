@@ -128,7 +128,7 @@ def sample_crops_for_fitting(cap, tracking_records, n_frames: int = 50):
     return crops
 
 
-def assign_teams_for_video(video_path, tracking_path, output_path):
+def assign_teams_for_video(video_path, tracking_path, output_path, max_frames=None):
     # grabs tracking record from the video id
     records = load_tracking_records(tracking_path)
 
@@ -188,6 +188,9 @@ def assign_teams_for_video(video_path, tracking_path, output_path):
             f.write(json.dumps(record) + "\n")
 
             frame_idx += 1
+
+            if max_frames is not None and frame_idx > max_frames:
+                break
 
     # clears the frames
     cap.release()

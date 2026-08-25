@@ -6,7 +6,7 @@ import supervision as sv
 from ultralytics import YOLO
 
 
-def keypoint_detection(video_path, weight_path, keypoint_output_path):
+def keypoint_detection(video_path, weight_path, keypoint_output_path, max_frames=None):
     # model and video preparation
     model = YOLO(str(weight_path))
     cap = cv2.VideoCapture(str(video_path))
@@ -53,4 +53,7 @@ def keypoint_detection(video_path, weight_path, keypoint_output_path):
             f.write(json.dumps(record) + "\n")
 
             frame_number += 1
+
+            if max_frames is not None and frame_number > max_frames:
+                break
 

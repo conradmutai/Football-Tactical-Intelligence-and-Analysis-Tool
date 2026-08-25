@@ -214,3 +214,22 @@ def load_json(file_path) -> dict:
             records[parsed["window_num"]] = json.loads(clean_line)
 
     return records
+
+
+if __name__ == '__main__':
+    VIDEO_ID = "2015-02-21_chelsea_burnley"
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+    VIDEO_PATH = BASE_DIR / "data" / "soccernet" / "england_epl" / "2014-2015" / \
+                 "2015-02-21 - 18-00 Chelsea 1 - 1 Burnley" / "1_720p.mkv"
+
+    TRACKING_OUTPUT_PATH = BASE_DIR / "data" / "tracking_output" / f"{VIDEO_ID}.jsonl"
+    KEYPOINT_OUTPUT_PATH = BASE_DIR / "data" / "keypoint_output" / f"{VIDEO_ID}.jsonl"
+    TEAM_ASSIGNMENT_OUTPUT_PATH = BASE_DIR / "data" / "team_assignment_output" / f"{VIDEO_ID}.jsonl"
+    EVENT_DETECTION_OUTPUT_PATH = BASE_DIR / "data" / "event_detection_output" / f"{VIDEO_ID}.jsonl"
+    OUTPUT_PATH = BASE_DIR / "data" / "formation_output" / f"{VIDEO_ID}.jsonl"
+
+    classify_windows(
+        EVENT_DETECTION_OUTPUT_PATH, TRACKING_OUTPUT_PATH, KEYPOINT_OUTPUT_PATH, TEAM_ASSIGNMENT_OUTPUT_PATH,
+        OUTPUT_PATH
+    )

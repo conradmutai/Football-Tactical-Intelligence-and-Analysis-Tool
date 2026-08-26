@@ -70,25 +70,33 @@ def computing_distance_covered(trajectory: List[tuple]) -> float:
 
 # calculates the sprints speed as well as amount of sprints a player does
 def compute_sprint_count(trajectory: List[tuple], fps: float, sprint_threshold: float) -> int:
+    # initializes the sprinting boolean and count variable
     count = 0
     currently_sprinting = False
 
+    # creates a list of frame numbers, and frame numbers matching to position for accessing the variables ahead
     frame_nums = {frame_num for frame_num, _ in trajectory}
     frame_num_to_pos = {frame_num: positions for frame_num, positions in trajectory}
 
+    # loops over the frame_num and positions in the trajectory
     for frame_num, positions in trajectory:
         # looks 4 frames ahead
         frame_num_ahead = frame_num + 4
 
+        # checks if the frame_num is in the list of frame numebrs
         if frame_num not in frame_nums:
             continue
 
+        # gets the positions ahead utilizing the frame number ahead of the current
         positions_ahead = frame_num_to_pos[frame_num_ahead]
 
+        # calculates the speed utilizing euclidian distance and time from elapsed and fps
         distance = euclidian_distance(positions_ahead, positions)
         time = (frame_num_ahead - frame_num) / fps
         speed = float(distance / time)
 
+        # if speed is more than the current threshold and the player is not currently sprinting
+        # then the count is incremented
         if speed > sprint_threshold:
             if not currently_sprinting:
                 count += 1  # this is the START of a new sprint
@@ -114,12 +122,15 @@ def get_zone(position: np.ndarray, pitch_length: float, pitch_width: float) -> t
 
 # computes the zone occupancy
 def compute_zone_occupancy(trajectory: List[tuple], pitch_length: float, pitch_width: float) -> Dict[tuple, int]:
+    # tallying the amount of zones occupied
     tally = defaultdict(int)
 
+    # goes over the frames and trajectory
     for frame_num, position in trajectory:
         zone = get_zone(position, pitch_length, pitch_width)
         tally[zone] += 1
 
+    # returns the total tally
     return tally
 
 
@@ -127,15 +138,19 @@ def compute_zone_occupancy(trajectory: List[tuple], pitch_length: float, pitch_w
 def compute_metrics_for_window(
         joined_positions: dict, start_frame: int, end_frame: int, track_ids: List[int]
 ) -> List[dict]:
+    # stores a list of dicts for results
     res = []
 
+    # loops over the players and checks their strategies, then gathers their stats
     for track_id in track_ids:
         trajectory = get_player_trajectory(joined_positions, start_frame, end_frame, track_id)
 
+        # calculates the accuracy
         distance_covered = computing_distance_covered(trajectory)
         sprint_count = compute_sprint_count(trajectory, fps=FPS, sprint_threshold=SPRINT_SPEED_THRESHOLD)
         zone_occupancy = compute_zone_occupancy(trajectory, pitch_length=PITCH_LENGTH, pitch_width=PITCH_WIDTH)
 
+        # stores the information in a dict
         record = {
             "track_id": track_id,
             "distance_covered": distance_covered,
@@ -143,6 +158,7 @@ def compute_metrics_for_window(
             "zone_occupancy": zone_occupancy
         }
 
+        # stores the dict into a list
         res.append(record)
 
     return res
@@ -151,18 +167,23 @@ def compute_metrics_for_window(
 def compute_metrics(
     possession_windows_path, tracking_path, keypoint_output_path, team_assignment_path, output_path
 ):
+    # loads in the possession windows from the json and joins frame per positions
     possession_windows = load_json(possession_windows_path)
     joined_per_frame_positions = load_joined_positions(tracking_path, keypoint_output_path, team_assignment_path)
 
+    # creates a list to store on json
     res = []
 
+    # loops over the windows in the possession windows and gets statistics for player per possession window
     for window in possession_windows.values():
+        # gathers the track ids (players) in the window
         track_ids = get_track_ids_in_window(
             joined_per_frame_positions,
             window["start_frame"],
             window["end_frame"]
         )
 
+        # calls method to grab metrics for window called
         metrics_for_window = compute_metrics_for_window(
             joined_per_frame_positions,
             window["start_frame"],
@@ -170,6 +191,7 @@ def compute_metrics(
             track_ids
         )
 
+        # stores information in  adict
         record = {
             "window": window["window_num"],
             "window_metrics": metrics_for_window,
@@ -177,6 +199,7 @@ def compute_metrics(
 
         res.append(record)
 
+    # writes the information into a jsonl file
     with open(str(output_path), "w") as f:
         for record in res:
             f.write(json.dumps(record) + "\n")

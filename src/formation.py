@@ -198,6 +198,8 @@ def classify_windows(possession_windows_path, tracking_path, keypoint_output_pat
         for record in result:
             f.write(json.dumps(record) + "\n")
 
+    return result
+
 
 # helper function which skims a jsonl file of records and returns a dict
 def load_json(file_path) -> dict:

@@ -10,6 +10,7 @@ from src.formation import load_json
 FPS = 25
 
 SPRINT_SPEED_THRESHOLD = 700  # units: pitch-coordinate units per second
+MAX_PLAUSIBLE_STEP_DISTANCE = 300
 
 PITCH_LENGTH = 12000
 PITCH_WIDTH = 7000
@@ -56,7 +57,9 @@ def computing_distance_covered(trajectory: List[tuple]) -> float:
         dist_between_points = euclidian_distance(positions, prev_positions)
 
         frame_num_diff = frame_num - prev_frame_num
-        if frame_num_diff > 5:  # if the gap between frames is too large then we ignore this distance coverage
+        if frame_num_diff > 5 or dist_between_points > MAX_PLAUSIBLE_STEP_DISTANCE:
+            prev_positions = positions
+            prev_frame_num = frame_num
             continue
 
         # sums the distances
@@ -84,7 +87,7 @@ def compute_sprint_count(trajectory: List[tuple], fps: float, sprint_threshold: 
         frame_num_ahead = frame_num + 4
 
         # checks if the frame_num is in the list of frame numebrs
-        if frame_num not in frame_nums:
+        if frame_num_ahead not in frame_nums:
             continue
 
         # gets the positions ahead utilizing the frame number ahead of the current
@@ -110,12 +113,12 @@ def compute_sprint_count(trajectory: List[tuple], fps: float, sprint_threshold: 
 # gets the zone that _ player is in
 def get_zone(position: np.ndarray, pitch_length: float, pitch_width: float) -> tuple:
     # gets the percentage of the way through the length/width of the pitch a player is
-    fraction_x = position[0] / pitch_length
-    fraction_y = position[1] / pitch_width
+    fraction_x = np.clip(position[0] / pitch_length, 0, 1)
+    fraction_y = np.clip(position[1] / pitch_width, 0, 1)
 
     # gets the zone said player is in
-    col = int(fraction_x * ZONE_GRID_COLS)
-    row = int(fraction_y * ZONE_GRID_ROWS)
+    col = min(int(fraction_x * ZONE_GRID_COLS), ZONE_GRID_COLS - 1)
+    row = min(int(fraction_y * ZONE_GRID_ROWS), ZONE_GRID_ROWS - 1)
 
     return row, col
 
@@ -153,9 +156,9 @@ def compute_metrics_for_window(
         # stores the information in a dict
         record = {
             "track_id": track_id,
-            "distance_covered": distance_covered,
+            "distance_covered": float(distance_covered),
             "sprint_count": sprint_count,
-            "zone_occupancy": zone_occupancy
+            "zone_occupancy": {f"{row}_{col}": count for (row, col), count in zone_occupancy.items()}
         }
 
         # stores the dict into a list
@@ -203,6 +206,8 @@ def compute_metrics(
     with open(str(output_path), "w") as f:
         for record in res:
             f.write(json.dumps(record) + "\n")
+
+    return res
 
 
 # helper function

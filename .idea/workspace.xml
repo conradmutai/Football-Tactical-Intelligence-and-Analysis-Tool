@@ -5,14 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Finished initial formation.py">
-      <change afterPath="$PROJECT_DIR$/src/rebuild_files.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Soccer Vision Valuation.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Soccer Vision Valuation.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/formation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/formation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pitch_keypoints.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pitch_keypoints.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/team_assignment.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/team_assignment.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tracking.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tracking.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/metrics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/rebuild_files.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/rebuild_files.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,7 +67,7 @@
     "Python.video_loader.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "test",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -79,7 +76,7 @@
       <recent name="$PROJECT_DIR$/data/tracking_output" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.formation">
+  <component name="RunManager" selected="Python.rebuild_files">
     <configuration name="event_detection" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Soccer Vision Valuation" />
       <option name="ENV_FILES" value="" />
@@ -199,8 +196,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.formation" />
         <item itemvalue="Python.rebuild_files" />
+        <item itemvalue="Python.formation" />
         <item itemvalue="Python.event_detection" />
         <item itemvalue="Python.team_assignment" />
         <item itemvalue="Python.tracking" />

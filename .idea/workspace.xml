@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Finished initial formation.py">
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Fixes complete">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/formation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/formation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/metrics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rebuild_files.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/rebuild_files.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,7 +63,7 @@
     "Python.tracking.executor": "Run",
     "Python.video_loader.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "test",
+    "git-widget-placeholder": "main",
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
@@ -364,7 +361,23 @@
       <option name="project" value="LOCAL" />
       <updated>1787664060040</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="Fixes complete">
+      <option name="closed" value="true" />
+      <created>1787947143609</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1787947143609</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Fixes complete">
+      <option name="closed" value="true" />
+      <created>1787947158270</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1787947158270</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -383,6 +396,7 @@
     <MESSAGE value="Fixes and Tests conducted event_detection.py" />
     <MESSAGE value="Finished event_detection.py" />
     <MESSAGE value="Finished initial formation.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="Finished initial formation.py" />
+    <MESSAGE value="Fixes complete" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixes complete" />
   </component>
 </project>

@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Fixed README.md">
-      <change afterPath="$PROJECT_DIR$/src/rebuild_files.py" afterDir="false" />
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Added fixed rebuild_files.py">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -385,7 +385,15 @@
       <option name="project" value="LOCAL" />
       <updated>1787947787409</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Added fixed rebuild_files.py">
+      <option name="closed" value="true" />
+      <created>1787948700160</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1787948700160</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -406,6 +414,7 @@
     <MESSAGE value="Finished initial formation.py" />
     <MESSAGE value="Fixes complete" />
     <MESSAGE value="Fixed README.md" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed README.md" />
+    <MESSAGE value="Added fixed rebuild_files.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added fixed rebuild_files.py" />
   </component>
 </project>

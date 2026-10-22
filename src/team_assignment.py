@@ -25,7 +25,22 @@ class TeamAssigner:
             # cuts of the head and legs/shorts isolating the jersey
             start_row = int(height * 0.2)
             end_row = int(height*0.6)
-            torso_region = crop[start_row:end_row, :, :]
+
+            # and trims the sides -- a detection box is wider than the torso, so
+            # the full width is largely grass, which pulled every team's mean
+            # colour towards green and blurred the two clusters together
+            width = crop.shape[1]
+            start_col = int(width * 0.25)
+            end_col = max(start_col + 1, int(width * 0.75))
+            torso_region = crop[start_row:end_row, start_col:end_col, :]
+
+            # a very small box can slice to nothing -- fall back to the whole
+            # crop rather than letting cvtColor fail on an empty array
+            if torso_region.size == 0:
+                torso_region = crop
+            if torso_region.size == 0:
+                hs_values.append(np.zeros(2))
+                continue
 
             # changes color scheme to HSV (Hue, Saturation, Value) and extracts Hue and Saturation
             color_change = cv2.cvtColor(torso_region, cv2.COLOR_BGR2HSV)
@@ -90,61 +105,69 @@ def load_tracking_records(tracking_path: str):
                 continue
 
             parsed = json.loads(clean_line)
-            records[parsed["frame"]] = (json.loads(clean_line))  # adds clean line to records
+            records[parsed["frame"]] = parsed  # adds clean line to records
 
     return records
 
 
 # creates a sample of crops which will then be fed in for feeding
-def sample_crops_for_fitting(cap, tracking_records, n_frames: int = 50):
-    # gets the total amount of frames
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+def sample_crops_for_fitting(cap, tracking_records, n_frames: int = 50, seed: int = 42):
+    """Sample crops for the KMeans fit from frames that actually have detections.
 
-    # grabs the minimum amount of frames between the two and then creates indices on what to select
-    n_frames = min(n_frames, total_frames)
-    sampled_indices = random.sample(range(total_frames), n_frames)
+    Sampling random indices out of the whole video meant most picks had no
+    tracking record and were skipped, leaving KMeans fitted on far fewer crops
+    than intended. Drawing from the record keys instead makes every pick count
+    and keeps this correct for any frame range.
+
+    The RNG is seeded because the sample decides which cluster becomes team 0,
+    and that label has to be reproducible across runs.
+    """
+    tracked_frames = sorted(tracking_records)
+    if not tracked_frames:
+        return []
+
+    sampled_frames = random.Random(seed).sample(
+        tracked_frames, min(n_frames, len(tracked_frames))
+    )
 
     # empty list for the list of crops
     crops = []
 
-    # iterates over the frame indexes in the sample indices and then selects the crops for fitting
-    for frame_idx in sampled_indices:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+    # iterates over the sampled frames and then selects the crops for fitting
+    for frame_num in sampled_frames:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num - 1)  # frame numbers are 1-based
         success, frame = cap.read()
         if not success:
             continue
 
-        record = tracking_records.get(frame_idx + 1)  # tracking.py's frame numbers start at 1
-        if record is None:
-            continue
-
         # checks for if there is a detection
-        for detection in record["detections"]:
-            if is_referee(detection):
+        for detection in tracking_records[frame_num]["detections"]:
+            if is_referee(detection) or detection["class"] == "Ball":
                 continue
             crop = extract_crop(frame, detection["bbox"])
-            crops.append(crop)
+            if crop.size:
+                crops.append(crop)
 
     return crops
 
 
-def assign_teams_for_video(video_path, tracking_path, output_path, max_frames=None):
+def assign_teams_for_video(video_path, tracking_path, output_path, max_frames=None, start_frame=0):
     # grabs tracking record from the video id
     records = load_tracking_records(tracking_path)
 
     # makes the video into a cv2 capture and gathers total frames and fps
     cap = cv2.VideoCapture(str(video_path))
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = cap.get(cv2.CAP_PROP_FPS)
 
+    # fitted once, up front, so team 0/1 mean the same thing for the whole clip
     fitting_sample = sample_crops_for_fitting(cap=cap, tracking_records=records)
     team_assigner = TeamAssigner()
     team_assigner.fit(fitting_sample)
 
-    # sets the cap back to frame 0
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    # rewind to the start of the range the fit seeked away from
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
-    frame_idx = 1
+    frame_idx = start_frame + 1
 
     with open(str(output_path), "w") as f:
         while cap.isOpened():
@@ -154,8 +177,11 @@ def assign_teams_for_video(video_path, tracking_path, output_path, max_frames=No
             if not success:
                 break
 
-            # gathers the frame record utilizing the frame index
-            frame_record = records[frame_idx]
+            # gathers the frame record utilizing the frame index. A missing
+            # record means the video ran past the tracked range, not an error.
+            frame_record = records.get(frame_idx)
+            if frame_record is None:
+                break
 
             # gathers the crops
             crops = []
@@ -163,9 +189,11 @@ def assign_teams_for_video(video_path, tracking_path, output_path, max_frames=No
 
             # loops over all the detections in a frame record
             for detection in frame_record["detections"]:
-                if is_referee(detection):
+                if is_referee(detection) or detection["class"] == "Ball":
                     continue
                 crop = extract_crop(frame, detection["bbox"])
+                if crop.size == 0:
+                    continue
                 crops.append(crop)
                 track_ids.append(detection["track_id"])
 
@@ -189,7 +217,7 @@ def assign_teams_for_video(video_path, tracking_path, output_path, max_frames=No
 
             frame_idx += 1
 
-            if max_frames is not None and frame_idx > max_frames:
+            if max_frames is not None and frame_idx > start_frame + max_frames:
                 break
 
     # clears the frames

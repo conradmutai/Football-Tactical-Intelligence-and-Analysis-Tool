@@ -7,6 +7,9 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from src.event_detection import euclidian_distance, load_joined_positions
 
+# a formation claim needs most of an outfield team actually visible
+MIN_POSITIONS_FOR_FORMATION = 7
+
 # pre declared formations for model to match to
 FORMATION_TEMPLATES = {
     "4-4-2": [
@@ -116,6 +119,11 @@ def match_positions_to_template(observed_positions: List[np.ndarray], template_p
 
 # classifies the formations
 def classify_formation(observed_positions: List[np.ndarray]) -> list[str, float]:
+    # a window where the homography never resolved has no positions to match,
+    # and every template would score 0 -- report that rather than inventing a shape
+    if len(observed_positions) < MIN_POSITIONS_FOR_FORMATION:
+        return ["unknown", float("inf")]
+
     # initializing a minimum distance
     min_sum_dist = float("inf")
 
@@ -158,10 +166,12 @@ def average_positions_for_window(joined_positions: dict, start_frame: int, end_f
 
 
 # classifies the formation for each window
-def classify_windows(possession_windows_path, tracking_path, keypoint_output_path, team_assignment_path, output_path):
+def classify_windows(possession_windows_path, tracking_path, keypoint_output_path, team_assignment_path, output_path,
+                     joined_positions=None):
     # loads the json file and the joined positions
     possession_windows = load_json(possession_windows_path)
-    joined_per_frame_possession = load_joined_positions(tracking_path, keypoint_output_path, team_assignment_path)
+    joined_per_frame_possession = joined_positions if joined_positions is not None else load_joined_positions(
+        tracking_path, keypoint_output_path, team_assignment_path)
 
     # result array for returning the result
     result = []
@@ -213,25 +223,6 @@ def load_json(file_path) -> dict:
                 continue
 
             parsed = json.loads(clean_line)
-            records[parsed["window_num"]] = json.loads(clean_line)
+            records[parsed["window_num"]] = parsed
 
     return records
-
-
-if __name__ == '__main__':
-    VIDEO_ID = "2015-02-21_chelsea_burnley"
-    BASE_DIR = Path(__file__).resolve().parent.parent
-
-    VIDEO_PATH = BASE_DIR / "data" / "soccernet" / "england_epl" / "2014-2015" / \
-                 "2015-02-21 - 18-00 Chelsea 1 - 1 Burnley" / "1_720p.mkv"
-
-    TRACKING_OUTPUT_PATH = BASE_DIR / "data" / "tracking_output" / f"{VIDEO_ID}.jsonl"
-    KEYPOINT_OUTPUT_PATH = BASE_DIR / "data" / "keypoint_output" / f"{VIDEO_ID}.jsonl"
-    TEAM_ASSIGNMENT_OUTPUT_PATH = BASE_DIR / "data" / "team_assignment_output" / f"{VIDEO_ID}.jsonl"
-    EVENT_DETECTION_OUTPUT_PATH = BASE_DIR / "data" / "event_detection_output" / f"{VIDEO_ID}.jsonl"
-    OUTPUT_PATH = BASE_DIR / "data" / "formation_output" / f"{VIDEO_ID}.jsonl"
-
-    classify_windows(
-        EVENT_DETECTION_OUTPUT_PATH, TRACKING_OUTPUT_PATH, KEYPOINT_OUTPUT_PATH, TEAM_ASSIGNMENT_OUTPUT_PATH,
-        OUTPUT_PATH
-    )

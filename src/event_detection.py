@@ -7,6 +7,15 @@ import numpy as np
 
 from src.homography import build_transformer_for_frame
 
+# Possession is a question about who is nearest the ball, which does not need a
+# pitch model -- and tying it to one cost most of the data: the homography
+# resolves on ~32% of frames while the ball is seen on ~64%, so pitch-space
+# possession could only ever see their 19% intersection. Measuring in image
+# space instead uses every frame that has a ball.
+PLAYER_HEIGHT_M = 1.8  # a player's bounding box is the ruler for image distance
+POSSESSION_RADIUS_M = 1.5
+DUEL_RADIUS_M = 2.5
+
 
 # euclidian distance calculation
 def euclidian_distance(point_a: np.ndarray, point_b: np.ndarray) -> float:
@@ -61,12 +70,19 @@ def detect_possession_for_frame(ball_pos: Optional[np.ndarray], player_positions
     else:
         status = "no-one in possession"
 
+    team = player_teams.get(nearest_id)
+
+    # whoever is nearest has to belong to a team for this to be possession at
+    # all -- a referee or an unlabelled track cannot hold the ball for anyone
+    if team is None:
+        status = "no-one in possession"
+
     # creates a dict
     record = {
         "track_id": nearest_id,
         "status": status,
         "min_distance": min_dist,
-        "team": player_teams.get(nearest_id)
+        "team": team
     }
 
     return record
@@ -78,11 +94,17 @@ def build_possession_windows(per_frame_possession: List[Optional[dict]], min_dur
 
     window = 1  # initializing all to 1
 
-    # assign a team
+    # assign a team. A short clip can contain no clean-possession frame at all
+    # (a replay, a crowd shot), so this must return empty rather than raise.
     first_valid = next(
-        fp for fp in per_frame_possession
-        if fp["status"] not in ("no-one in possession", "in-duel", "No Ball Detected")
+        (fp for fp in per_frame_possession
+         if fp["status"] not in ("no-one in possession", "in-duel", "No Ball Detected")
+         and fp["team"] is not None),
+        None
     )
+    if first_valid is None:
+        return record
+
     window_start = first_valid["frame"]
     team = first_valid["team"]
 
@@ -90,7 +112,8 @@ def build_possession_windows(per_frame_possession: List[Optional[dict]], min_dur
 
     for frame_possession in per_frame_possession:
         # skips frames where no one is in possession or when in duel
-        if frame_possession["status"] in ("no-one in possession", "in-duel", "No Ball Detected"):
+        if (frame_possession["status"] in ("no-one in possession", "in-duel", "No Ball Detected")
+                or frame_possession["team"] is None):
             continue
 
         # initializes factors for checks
@@ -102,7 +125,7 @@ def build_possession_windows(per_frame_possession: List[Optional[dict]], min_dur
             # if the ball remains in possession with a team for a longer period of time then the window is added to
             # the record
             if duration >= min_duration_frames:
-                record[window] = record[window] = {
+                record[window] = {
                     "window_num": window,
                     "team_in_possession": team,
                     "start_frame": window_start,
@@ -118,6 +141,9 @@ def build_possession_windows(per_frame_possession: List[Optional[dict]], min_dur
         last_frame_num = frame_num
 
     # makes a final duration window for possession, so it is accounted
+    if last_frame_num is None:
+        return record
+
     final_duration = last_frame_num - window_start
     if final_duration >= min_duration_frames:
         record[window] = {
@@ -128,6 +154,44 @@ def build_possession_windows(per_frame_possession: List[Optional[dict]], min_dur
         }
 
     return record
+
+
+def load_image_positions(tracking_path, team_assignment_path) -> dict:
+    """Ball and player positions in image space, with a per-frame pixel scale.
+
+    Same shape as load_joined_positions, plus "scale": the median player box
+    height in pixels, which stands in for PLAYER_HEIGHT_M and converts the
+    possession radii into pixels under the current camera zoom.
+    """
+    records = defaultdict()
+
+    tracking_records = load_records(tracking_path)
+    team_records = load_records(team_assignment_path)
+
+    for frame_num in sorted(tracking_records.keys() & team_records.keys()):
+        ball_position = None
+        player_positions = {}
+        heights = []
+
+        for detection in tracking_records[frame_num]["detections"]:
+            x1, y1, x2, y2 = detection["bbox"]
+
+            if detection["class"] == "Ball":
+                ball_position = np.array([(x1 + x2) / 2, (y1 + y2) / 2])
+            elif detection["class"] in ("Player", "Goalkeeper"):
+                # the feet are where the player meets the pitch, so distances
+                # between players are least distorted there
+                player_positions[detection["track_id"]] = np.array([(x1 + x2) / 2, y2])
+                heights.append(y2 - y1)
+
+        records[frame_num] = {
+            "ball_position": ball_position,
+            "player_positions": player_positions,
+            "player_teams": {p["track_id"]: p["team"] for p in team_records[frame_num]["players"]},
+            "scale": float(np.median(heights)) if heights else None,
+        }
+
+    return records
 
 
 def load_joined_positions(tracking_path, keypoint_output_path, team_assignment_path) -> dict:
@@ -177,19 +241,30 @@ def load_joined_positions(tracking_path, keypoint_output_path, team_assignment_p
 
 
 #
-def run_event_detection(tracking_path, keypoint_output_path, team_assignment_path, output_path):
-    # loads the joined positions
-    records = load_joined_positions(tracking_path, keypoint_output_path, team_assignment_path)
+def run_event_detection(tracking_path, keypoint_output_path, team_assignment_path, output_path, joined_positions=None):
+    # image space, so possession is not limited to frames where the pitch
+    # keypoints happened to resolve
+    records = load_image_positions(tracking_path, team_assignment_path)
 
     # creates list for holding all possession frames
     per_frame_possession = []
 
     # iterates through all the frames in the records (the num of keys)
-    for frame in records.keys():
+    for frame in sorted(records.keys()):
         record_frame = records[frame]
+        scale = record_frame["scale"]
 
-        # detects the possession for each frame
-        possession_for_frame = detect_possession_for_frame(record_frame["ball_position"], record_frame["player_positions"], record_frame["player_teams"], r_possession=150, r_duel=250)
+        if scale is None:
+            possession_for_frame = {"track_id": None, "status": "No Ball Detected",
+                                    "min_distance": None, "team": None}
+        else:
+            # convert the real-world radii into pixels at this frame's zoom
+            possession_for_frame = detect_possession_for_frame(
+                record_frame["ball_position"], record_frame["player_positions"],
+                record_frame["player_teams"],
+                r_possession=scale * POSSESSION_RADIUS_M / PLAYER_HEIGHT_M,
+                r_duel=scale * DUEL_RADIUS_M / PLAYER_HEIGHT_M,
+            )
 
         possession_for_frame["frame"] = frame
         per_frame_possession.append(possession_for_frame)  # appends the possession in the frame into a list
@@ -215,6 +290,6 @@ def load_records(file_path) -> dict:
                 continue
 
             parsed = json.loads(clean_line)
-            records[parsed["frame"]] = json.loads(clean_line)
+            records[parsed["frame"]] = parsed
 
     return records

@@ -39,10 +39,16 @@ Every stage writes its output to a JSONL file keyed by frame number, which the n
 ## Pipeline Stages
 
 ### Detection
-The detection stage uses a fine tuned YOLOv9s model trained on the Roboflow `football-players-detection-3zvbc` dataset, with four classes: Ball, Player, Goalkeeper, and Referee. The current run (`train-7`) reached an mAP50 of about 0.836.
+People and the ball are detected with a COCO pretrained YOLOv9m (`src/yolov9m.pt`), using the `person` and `sports ball` classes. The fine tuned YOLOv9s model trained on the Roboflow `football-players-detection-3zvbc` dataset (`train-7`, mAP50 about 0.836) is still in the pipeline, but only as a *role tagger*: it runs every fifth frame and its Goalkeeper and Referee boxes are matched onto the person boxes by overlap, then voted per track.
+
+That split is the opposite of how the project started, and it is worth explaining. Measured over frames 500-1500, the custom detector emitted about 30 boxes per frame for roughly 17 real people. The extras were not distant players, they were body fragments: a full body box plus a separate torso or legs box for the same person, which NMS does not suppress because a torso box inside a body box only has an IoU of about 0.4. Those fragments flickered on and off, and every flicker spawned a track. Checking frame by frame, *every* box the custom detector found overlapped a COCO box, so nothing was lost by the swap. See [Results](#results) for the before and after.
 
 ### Tracking
-Once players are detected in each frame, ByteTrack/BoT-SORT assigns a persistent track ID to each one, so the same player keeps the same ID across frames even when they're briefly occluded or overlap with another player.
+Detections are de-duplicated and then handed to BoT-SORT (`config/tracker.yaml`), which assigns a persistent track ID to each person. Two details matter:
+
+The tracker is driven directly rather than through Ultralytics' `model.track()`. That convenience wrapper associates on the *raw* detections, so duplicate boxes reach the tracker before anything can remove them, which was the whole problem. Driving `BOTSORT.update()` by hand means the de-duplication happens first, and lets the ball skip tracking entirely since it needs a position, not an identity.
+
+`gmc_method: sparseOptFlow` is on, because plain IoU association fails on a panning broadcast camera: the pan alone moves players far enough between frames to push IoU under the match threshold and kill the track.
 
 ### Homography
 The homography stage takes the pixel space positions from tracking and maps them onto a flat, real world pitch coordinate system, using `cv2.findHomography` with RANSAC on detected pitch keypoints. This is the stage giving the most trouble right now. On a full ~10 minute run (15,549 frames), about 48.6% of frames are being skipped due to low confidence keypoint detection, and I haven't fully resolved this yet. More on this in [Design Decisions](#the-homography-problem-still-unresolved).
@@ -69,14 +75,37 @@ Because track IDs aren't yet resolved to a single physical player across ID swit
 
 ## Results
 
-| Metric | Value |
-|---|:---:|
-| Detection mAP50 (train-7) | 0.836 |
-| Homography frame skip rate (15,549 frame run) | ~48.6% (unresolved) |
-| Possession windows detected (~10 min clip) | 15 |
-| Distinct track IDs in a single window | up to 76 (should be ≤22) |
+All figures from the same ~10-minute clip (Chelsea vs. Burnley, 2015-02-21, 15,000 frames at 25 fps).
 
-> Numbers above are from a single ~10-minute clip (Chelsea vs. Burnley, 2015-02-21), not a full match; see `rebuild_files.py`. The track ID count row is the clearest symptom of the ID fragmentation issue described in [Formation](#formation) and [Metrics](#metrics).
+### Tracking, before and after the detector swap
+
+| Metric | Custom detector + ByteTrack | COCO detector + BoT-SORT |
+|---|:---:|:---:|
+| Distinct track IDs | 5,553 | **1,360** |
+| Median track lifetime | 0.4 s | **3.0 s** |
+| Tracks lasting <= 5 frames | 2,141 | **109** |
+| Tracks lasting > 250 frames | 56 | **166** |
+| Ball detected | 17% of frames | **37%** |
+| Next-frame box match (frames 500-1500) | 0.856 | **0.986** |
+
+1,360 IDs is still well above the ~25 people on the pitch, and that is expected rather than a remaining bug: a ten minute broadcast clip contains replays, close-ups and dozens of camera cuts, and every cut legitimately ends a track. Over a continuous 1,000-frame passage of play the same pipeline produces **83** IDs with a 5.9 s median lifetime. `player_identity.py` is what reconnects tracks across those cuts, where the shirt number is legible.
+
+### Geometry and events
+
+| Metric | Before | After |
+|---|:---:|:---:|
+| Homography median reprojection error | 3.3 m | **0.02 m** |
+| Frames with a validated homography | ~53% (unvalidated) | ~24-32% (validated) |
+| Possession windows (30 s clip) | 1 | **20** |
+| Possession windows (10 min clip) | 15 | **162** |
+
+The homography coverage going *down* is the point: the frames that were dropped were producing transforms with a median error of 3.3 m, and 29% of them were worse than 10 m. Those were what made pitch-space player speeds come out at a median of 83 m/s.
+
+### What is still weak
+
+- **Distances are conservative.** Only about a quarter of frames carry valid geometry, so gaps in a trajectory are skipped, and steps implying more than 12 m/s are rejected as jitter. The numbers understate rather than overstate.
+- **Jersey numbers resolve for a minority of players.** OCR succeeds on about a third of the crops worth attempting, and only large, rear-facing players are ever worth attempting.
+- **The pitch keypoint model is the remaining weak link**, and fixing it properly means retraining it, not tuning around it.
 
 ---
 
@@ -102,10 +131,34 @@ This project was originally scoped to end in a player valuation stage, turning f
 ### Path Anchoring
 `Path(__file__).resolve()` gets used everywhere instead of relying on the working directory. Running the same script from a terminal versus PyCharm's run button resolves paths differently, and I hit that bug enough times early on that anchoring to the script's own location just made it go away for good instead of patching it per script.
 
-### The Homography Problem, Still Unresolved
-This is the one I don't have a clean answer for yet. About half of frames are being skipped because the keypoint detection model isn't confident enough about the pitch lines in those frames, so `homography.py` drops them instead of producing a bad transform. I'm leaving this documented as unresolved rather than pretending it's fixed; the likely path forward is either a stronger keypoint model or interpolating between frames that were detected confidently, but I haven't committed to either yet.
+### The Homography Problem, Improved But Still The Weak Link
+This is still the least solid stage, but it is no longer the thing breaking everything downstream.
 
-This is also the root cause of the ID fragmentation showing up in formation and metrics output. With roughly half of frames dropped, ByteTrack loses and re-acquires players constantly, so a single physical player ends up scattered across many track IDs. Formation and metrics compute correctly given their inputs, but until tracking is more continuous, or track IDs get reconciled downstream, neither stage's numbers should be read as "per-player" yet; see [Formation](#formation) and [Metrics](#metrics).
+The original failure was not that frames were being skipped, it was that the frames being *kept* were wrong. The keypoint model emits all 32 pitch keypoints for every frame whether or not the landmark is visible, and the low confidence ones land on empty grass. Fitting a homography to those produced a median reprojection error of 3.3 m, with 29% of frames worse than 10 m. That is what made pitch space player speeds come out at a median of 83 m/s.
+
+Three changes, each validated by measurement rather than taste:
+
+- **Filter the keypoints before fitting.** Only keypoints at confidence >= 0.7 are used, and at least 6 are required. Four would fit any homography exactly and prove nothing.
+- **Validate the fit.** `ViewTransformer` now keeps RANSAC's inlier mask and its own reprojection error, and `build_transformer_for_frame` throws out any frame whose fit disagrees with the landmarks it was built from.
+- **Check the fit is well conditioned.** A fit can match its own landmarks perfectly and still be useless if they sit in one small corner of the image, because it then extrapolates nonsense out to where the players are. The keypoints must span real image area, and the video frame must map to a convex, plausibly sized patch of pitch.
+
+Median reprojection error went from 3.3 m to 0.02 m, at the cost of coverage falling from about 53% of frames to about 32%. That trade is deliberate: downstream stages already skip missing frames, and a missing radar is better than a wrong one.
+
+What remains is that the surviving homographies still jitter frame to frame, because the underlying keypoint model is weak. `metrics.py` compensates by median filtering each trajectory over a short window and rejecting steps faster than 12 m/s, so distances come out conservative rather than absurd. The real fix is a better keypoint model, which is a retraining job, not a tuning one.
+
+### Possession Is Measured In Image Space
+Possession asks who is nearest the ball, and that does not need a pitch model. Tying it to one was costing most of the data: the homography resolves on about 32% of frames while the ball is seen on about 64%, so pitch space possession could only ever see their 19% intersection, which was not enough to form possession windows at all on a short clip.
+
+It now measures in image space, using the median player bounding box height as a ruler to convert the real world possession and duel radii into pixels at the current camera zoom. Over the same 30 second clip this took possession from 1 window to 20.
+
+### Shirt Colour Gives The Team, The Number Gives The Player
+These are often spoken about together as a way to track players, but they do very different jobs.
+
+Shirt colour can only ever give the team. Eleven team-mates wear the same kit, so colour is a gate that stops cross-team merges, never an identity.
+
+The jersey number is the only real identity signal, and it is sparse. A median player box is about 60 px tall, which puts the number at roughly 11 px, well under the ~16-20 px OCR needs. Only large, rear facing players are readable at all, and nothing below a 45 px box ever is.
+
+What makes it usable anyway is voting across a whole tracklet instead of trusting any single frame, and that only became possible after the detector swap: at a 0.3 s median tracklet a player got no legible reads at all, while at ~6 s there are dozens of chances. `player_identity.py` reads the clearest crops per tracklet, folds partial reads (OCR often catches only the first digit of a two digit number) into the full read, and accepts a number when the vote is consistent. Tracklets carrying the same number and team, that never overlap in time, are merged into one player. Tracklets with no legible number keep a synthetic id rather than being merged on a guess.
 
 ---
 
@@ -117,19 +170,34 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Then run each stage in order:
+Everything runs over an explicit frame range, so you can analyse a 30 second
+clip or a whole half with the same commands. Ranges accept frames (`1500`),
+seconds (`90s`), minutes (`10m`) or a clock (`2:30`).
 
 ```bash
-python src/detection.py --video path/to/match.mkv
-python src/tracking.py
-python src/homography.py
-python src/team_assignment.py
-python src/event_detection.py
-python src/formation.py
-python src/metrics.py
+# 1. the analysis pipeline: tracking -> keypoints -> teams -> events -> formation -> metrics
+python -m src.rebuild_files --video-id chelsea_burnley --start 0 --duration 10m
+
+# 2. resolve tracker ids into players, reading shirt numbers where they are legible
+python -m src.player_identity --video-id chelsea_burnley --start 0 --duration 10m
+
+# 3. render the annotated video with the live stats panel
+python -m src.render_video --video-id chelsea_burnley --start 0 --duration 10m \
+    --team-names "Chelsea,Burnley"
 ```
 
-Each stage reads its input from the JSONL file the previous stage wrote to `data/`, so they need to be run in order the first time through. `src/rebuild_files.py` runs the whole chain (tracking, keypoints, team assignment, event detection, formation, metrics) against a shared frame count in one script, which is useful when a change upstream means everything downstream needs regenerating.
+Every stage writes `data/<stage>_output/<video-id>_<start>-<end>.jsonl`, with the
+range in the filename so separate runs never overwrite each other. Frame numbers
+inside those files are always absolute, so a run starting at `5m` joins correctly
+against anything else taken from the same video.
+
+Step 2 is optional. Without it the overlay falls back to raw track ids. Step 3
+needs step 1 to have been run over the same range.
+
+The two colour clusters come out of KMeans in an arbitrary order, so if the team
+names land on the wrong kits, re-run step 3 with `--swap-teams`. The renderer
+prints which cluster got which colour, and the stats panel shows a colour swatch
+beside each team name.
 
 ---
 

@@ -8,7 +8,7 @@ data/dataset/
 data/dataset_pose/
 
 # generated outputs
-data
+data/
 data/*.jsonl
 
 # video files (not license-clear to commit)

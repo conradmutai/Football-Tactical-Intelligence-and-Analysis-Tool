@@ -10,12 +10,69 @@ from src.formation import load_json
 FPS = 25
 
 SPRINT_SPEED_THRESHOLD = 700  # units: pitch-coordinate units per second
-MAX_PLAUSIBLE_STEP_DISTANCE = 300
+# 48 units/frame at 25 fps is 12 m/s -- a shade above an elite sprint, so any
+# larger step is homography jitter rather than a player. The old 300 (75 m/s)
+# let 84% of impossible steps through and inflated distances several-fold.
+MAX_PLAUSIBLE_STEP_DISTANCE = 48
+
+# the pitch keypoints are noisy enough that projected positions jitter; a short
+# median filter removes most of it without blunting real movement
+TRAJECTORY_SMOOTHING_RADIUS = 5
+
+# a burst has to last this long to count as a sprint. Without it, position noise
+# flicks across the speed threshold repeatedly and reports double-figure sprints
+# inside a ten-second window.
+MIN_SPRINT_FRAMES = 12
 
 PITCH_LENGTH = 12000
 PITCH_WIDTH = 7000
 ZONE_GRID_ROWS = 3  # along pitch WIDTH
 ZONE_GRID_COLS = 3  # along pitch LENGTH
+
+
+# builds every player's trajectory in a single pass over the window
+def build_trajectory_index(joined_positions: dict, start_frame: int, end_frame: int,
+                           smoothing_radius: int = TRAJECTORY_SMOOTHING_RADIUS) -> Dict[int, List[tuple]]:
+    """Return {track_id: [(frame, position), ...]} for one window.
+
+    This replaces calling get_player_trajectory once per track_id, which
+    re-scanned the whole window for each player and compared every id with `==`
+    instead of a dict lookup. On a 4,482-frame window with 980 track ids that
+    was ~48M operations; both factors grow with clip length, so the old form was
+    effectively quadratic and was the wall for long clips.
+    """
+    index = defaultdict(list)
+
+    for frame_num in range(start_frame, end_frame + 1):
+        frame_data = joined_positions.get(frame_num)
+
+        if frame_data is None:
+            continue
+
+        for track_id, position in frame_data["player_positions"].items():
+            index[track_id].append((frame_num, position))
+
+    if smoothing_radius:
+        for track_id, trajectory in index.items():
+            index[track_id] = smooth_trajectory(trajectory, smoothing_radius)
+
+    return index
+
+
+def smooth_trajectory(trajectory: List[tuple], radius: int) -> List[tuple]:
+    """Median-filter a trajectory's positions over a +/- radius frame window."""
+    if len(trajectory) < 3:
+        return trajectory
+
+    frames = [frame_num for frame_num, _ in trajectory]
+    positions = np.asarray([position for _, position in trajectory])
+
+    smoothed = [
+        np.median(positions[max(0, i - radius): i + radius + 1], axis=0)
+        for i in range(len(positions))
+    ]
+
+    return list(zip(frames, smoothed))
 
 
 # determines the players overall trajectory
@@ -57,7 +114,10 @@ def computing_distance_covered(trajectory: List[tuple]) -> float:
         dist_between_points = euclidian_distance(positions, prev_positions)
 
         frame_num_diff = frame_num - prev_frame_num
-        if frame_num_diff > 5 or dist_between_points > MAX_PLAUSIBLE_STEP_DISTANCE:
+        # the limit is per frame, so a step spanning several frames is allowed to
+        # be correspondingly longer -- comparing a multi-frame step against the
+        # single-frame limit silently discarded real movement
+        if frame_num_diff > 5 or dist_between_points > MAX_PLAUSIBLE_STEP_DISTANCE * frame_num_diff:
             prev_positions = positions
             prev_frame_num = frame_num
             continue
@@ -72,10 +132,12 @@ def computing_distance_covered(trajectory: List[tuple]) -> float:
 
 
 # calculates the sprints speed as well as amount of sprints a player does
-def compute_sprint_count(trajectory: List[tuple], fps: float, sprint_threshold: float) -> int:
+def compute_sprint_count(trajectory: List[tuple], fps: float, sprint_threshold: float,
+                         min_sprint_frames: int = MIN_SPRINT_FRAMES) -> int:
     # initializes the sprinting boolean and count variable
     count = 0
     currently_sprinting = False
+    sprint_start_frame = None
 
     # creates a list of frame numbers, and frame numbers matching to position for accessing the variables ahead
     frame_nums = {frame_num for frame_num, _ in trajectory}
@@ -102,9 +164,12 @@ def compute_sprint_count(trajectory: List[tuple], fps: float, sprint_threshold: 
         # then the count is incremented
         if speed > sprint_threshold:
             if not currently_sprinting:
-                count += 1  # this is the START of a new sprint
                 currently_sprinting = True
+                sprint_start_frame = frame_num
         else:
+            # only counts once the burst proved it lasted long enough to be real
+            if currently_sprinting and frame_num - sprint_start_frame >= min_sprint_frames:
+                count += 1
             currently_sprinting = False  # speed dropped — sprint has ended
 
     return count
@@ -139,18 +204,21 @@ def compute_zone_occupancy(trajectory: List[tuple], pitch_length: float, pitch_w
 
 # tracks a players metrics
 def compute_metrics_for_window(
-        joined_positions: dict, start_frame: int, end_frame: int, track_ids: List[int]
+        joined_positions: dict, start_frame: int, end_frame: int, track_ids: List[int], fps: float = FPS
 ) -> List[dict]:
     # stores a list of dicts for results
     res = []
 
+    # one pass over the window gives every player's trajectory at once
+    trajectories = build_trajectory_index(joined_positions, start_frame, end_frame)
+
     # loops over the players and checks their strategies, then gathers their stats
     for track_id in track_ids:
-        trajectory = get_player_trajectory(joined_positions, start_frame, end_frame, track_id)
+        trajectory = trajectories.get(track_id, [])
 
         # calculates the accuracy
         distance_covered = computing_distance_covered(trajectory)
-        sprint_count = compute_sprint_count(trajectory, fps=FPS, sprint_threshold=SPRINT_SPEED_THRESHOLD)
+        sprint_count = compute_sprint_count(trajectory, fps=fps, sprint_threshold=SPRINT_SPEED_THRESHOLD)
         zone_occupancy = compute_zone_occupancy(trajectory, pitch_length=PITCH_LENGTH, pitch_width=PITCH_WIDTH)
 
         # stores the information in a dict
@@ -168,11 +236,13 @@ def compute_metrics_for_window(
 
 
 def compute_metrics(
-    possession_windows_path, tracking_path, keypoint_output_path, team_assignment_path, output_path
+    possession_windows_path, tracking_path, keypoint_output_path, team_assignment_path, output_path,
+    joined_positions=None, fps: float = FPS
 ):
     # loads in the possession windows from the json and joins frame per positions
     possession_windows = load_json(possession_windows_path)
-    joined_per_frame_positions = load_joined_positions(tracking_path, keypoint_output_path, team_assignment_path)
+    joined_per_frame_positions = joined_positions if joined_positions is not None else load_joined_positions(
+        tracking_path, keypoint_output_path, team_assignment_path)
 
     # creates a list to store on json
     res = []
@@ -191,7 +261,8 @@ def compute_metrics(
             joined_per_frame_positions,
             window["start_frame"],
             window["end_frame"],
-            track_ids
+            track_ids,
+            fps=fps
         )
 
         # stores information in  adict

@@ -241,7 +241,7 @@ def load_joined_positions(tracking_path, keypoint_output_path, team_assignment_p
 
 
 #
-def run_event_detection(tracking_path, keypoint_output_path, team_assignment_path, output_path, joined_positions=None):
+def run_event_detection(tracking_path, team_assignment_path, output_path):
     # image space, so possession is not limited to frames where the pitch
     # keypoints happened to resolve
     records = load_image_positions(tracking_path, team_assignment_path)

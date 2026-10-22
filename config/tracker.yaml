@@ -1,0 +1,33 @@
+# BoT-SORT tracker tuned for broadcast soccer footage.
+#
+# Replaces the default bytetrack.yaml, which was causing severe ID fragmentation
+# (5,553 distinct IDs over 15,000 frames, median lifetime 10 frames).
+#
+# The two changes that matter most for a panning broadcast camera:
+#   - gmc_method: sparseOptFlow -- ByteTrack is pure IoU + Kalman, so camera pan
+#     alone pushes IoU below match_thresh and kills tracks. GMC cancels the pan.
+#   - with_reid -- adds appearance matching so a track survives a few missed frames.
+
+tracker_type: botsort
+
+track_high_thresh: 0.25 # first-stage match threshold
+track_low_thresh: 0.10 # keep LOW: weak detections still re-associate to existing tracks
+new_track_thresh: 0.60 # keep HIGH: stops junk detections from spawning new identities
+track_buffer: 100 # 4 s at 25 fps (was 30) -- outlasts most occlusions
+match_thresh: 0.80
+fuse_score: True
+
+# BoT-SORT specifics
+gmc_method: sparseOptFlow # camera-pan compensation
+
+# ReID
+#
+# Left off deliberately. `model: auto` reuses the detector's backbone features,
+# but those are only extracted by ultralytics' own predict pipeline -- and
+# tracking.py drives the tracker directly so it can clean duplicate boxes before
+# association. Handing a raw frame to the "auto" encoder would feed it image rows
+# as if they were embeddings. GMC above is what actually matters for this footage.
+proximity_thresh: 0.5
+appearance_thresh: 0.80
+with_reid: False
+model: auto

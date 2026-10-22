@@ -33,9 +33,10 @@ ROLE_EVERY = 5
 ROLE_CONF = 0.40
 ROLE_OVERLAP = 0.50  # fraction of the role box that must sit inside a person box
 
-# De-duplication thresholds, in pixels at 1280x720. COCO produces almost no
-# fragments, so this rarely fires now -- but it is what makes the role tagger's
-# messier output usable, and it is cheap insurance.
+# De-duplication thresholds, in pixels at 1280x720. COCO rarely emits the
+# fragment boxes this was written for, so it seldom fires -- it is kept as cheap
+# insurance against a detector swap reintroducing them, since fragments reaching
+# the tracker is what produced thousands of ids.
 FOOT_DX = 20  # same player if foot points are this close horizontally...
 FOOT_DY = 25  # ...and this close vertically
 CONTAINMENT = 0.70  # drop a box with this much of its area inside a better one

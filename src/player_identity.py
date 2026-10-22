@@ -25,7 +25,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from src.rebuild_files import BASE_DIR, DEFAULT_VIDEO, STAGES, parse_position
+from src.clip import Clip
 
 # A number below this box height is a handful of pixels tall and never readable,
 # so attempting OCR there only adds noise.
@@ -203,36 +203,51 @@ def read_jersey_numbers(video_path, tracklets, reader=None, progress=True):
 def merge_tracklets(tracklets):
     """Assign a player id to every tracklet, merging those that are one person.
 
-    Two tracklets merge when they carry the same confident jersey number and the
-    same team, and never overlap in time -- a player cannot be in two places at
-    once. Without a number there is nothing that distinguishes team-mates, so
-    those tracklets stay separate rather than being merged on a guess.
+    Tracklets merge when they carry the same confident jersey number and team
+    and do not overlap in time -- a player cannot be in two places at once.
+
+    When two tracklets claim the same shirt at the same moment, one of the reads
+    must be wrong and we cannot tell which, so they are kept apart under
+    distinguishable labels (`A10`, `A10(2)`) rather than being silently fused.
+
+    Tracklets with no legible number keep a synthetic id; there is nothing that
+    distinguishes team-mates without one, so merging them would be a guess.
     """
     players = {}
-    by_key = {}
+    groups = defaultdict(list)  # (team, number) -> list of non-overlapping groups
 
     for track_id in sorted(tracklets, key=lambda t: tracklets[t]["start"]):
         tracklet = tracklets[track_id]
-        key = (tracklet["team"], tracklet["number"])
+        number = tracklet["number"]
 
-        if tracklet["number"] is None:
+        if number is None:
             players[track_id] = f"t{track_id}"
             continue
 
-        existing = by_key.get(key)
-        if existing is not None and not _overlaps(tracklets, existing, tracklet):
-            players[track_id] = players[existing[0]["track_id"]]
-            existing.append(tracklet)
-        else:
-            label = f"{'AB'[tracklet['team']] if tracklet['team'] in (0, 1) else '?'}{tracklet['number']}"
-            players[track_id] = label
-            by_key[key] = [tracklet]
+        key = (tracklet["team"], number)
+        shirt = groups[key]
+
+        # join the first group this tracklet can belong to without overlapping it
+        target = next((group for group in shirt if not _overlaps(group, tracklet)), None)
+        if target is None:
+            target = []
+            shirt.append(target)
+
+        target.append(tracklet)
+        players[track_id] = _player_label(tracklet["team"], number, shirt.index(target))
 
     return players
 
 
-def _overlaps(tracklets, group, candidate):
-    return any(not (candidate["end"] < t["start"] or candidate["start"] > t["end"]) for t in group)
+def _player_label(team, number, variant):
+    base = f"{'AB'[team] if team in (0, 1) else '?'}{number}"
+    return base if variant == 0 else f"{base}({variant + 1})"
+
+
+def _overlaps(group, candidate):
+    """True if the candidate shares any frame with a tracklet already in group."""
+    return any(not (candidate["end"] < member["start"] or candidate["start"] > member["end"])
+               for member in group)
 
 
 def build_identities(video_path, tracking_path, team_assignment_path, output_path, use_ocr=True):
@@ -276,34 +291,16 @@ def build_identities(video_path, tracking_path, team_assignment_path, output_pat
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--video", default=str(DEFAULT_VIDEO))
-    parser.add_argument("--video-id", required=True)
-    parser.add_argument("--start", default=None)
-    parser.add_argument("--end", default=None)
-    parser.add_argument("--duration", default=None)
+    Clip.add_arguments(parser)
     parser.add_argument("--no-ocr", action="store_true", help="skip jersey reading")
     args = parser.parse_args()
 
-    cap = cv2.VideoCapture(args.video)
-    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    cap.release()
-
-    start_frame = parse_position(args.start, fps) or 0
-    if args.duration is not None:
-        end_frame = start_frame + parse_position(args.duration, fps)
-    elif args.end is not None:
-        end_frame = parse_position(args.end, fps)
-    else:
-        end_frame = total
-    end_frame = min(end_frame, total)
-
-    suffix = f"{args.video_id}_{start_frame:06d}-{end_frame:06d}"
+    clip = Clip.from_args(args)
     build_identities(
-        args.video,
-        BASE_DIR / "data" / "tracking_output" / f"{suffix}.jsonl",
-        BASE_DIR / "data" / "team_assignment_output" / f"{suffix}.jsonl",
-        BASE_DIR / "data" / "identity_output" / f"{suffix}.jsonl",
+        clip.video,
+        clip.stage_path("tracking"),
+        clip.stage_path("team_assignment"),
+        clip.stage_path("identity"),
         use_ocr=not args.no_ocr,
     )
 

@@ -21,7 +21,7 @@ from sports.annotators.soccer import draw_pitch, draw_points_on_pitch
 from sports.configs.soccer import SoccerPitchConfiguration
 
 from src.homography import build_transformer_for_frame
-from src.rebuild_files import BASE_DIR, DEFAULT_VIDEO, STAGES, parse_position
+from src.clip import Clip
 
 # --- layout -----------------------------------------------------------------
 CANVAS_W, CANVAS_H = 1920, 1080
@@ -47,6 +47,10 @@ MUTED = (150, 148, 145)
 ACCENT = (90, 200, 255)
 TEAM_COLOURS = [(235, 170, 60), (70, 70, 235)]  # fallback; real kit colours are sampled
 REFEREE_COLOUR = (60, 220, 255)
+
+# radar groups are the two team indices plus this sentinel, rather than mixing
+# ints and the bare string "referee" as dict keys
+REFEREE_GROUP = "referee"
 BALL_COLOUR = (255, 255, 255)
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
@@ -143,10 +147,10 @@ def draw_radar(player_points, ball_point, stale, team_colours):
     pitch = draw_pitch(PITCH_CONFIG, padding=RADAR_PADDING, scale=RADAR_SCALE,
                        line_thickness=1, point_radius=3)
 
-    for team, points in player_points.items():
+    for group, points in player_points.items():
         if not points:
             continue
-        colour = REFEREE_COLOUR if team == "referee" else team_colours[team]
+        colour = REFEREE_COLOUR if group is REFEREE_GROUP else team_colours[group]
         pitch = draw_points_on_pitch(
             PITCH_CONFIG, np.array(points), face_color=sv.Color(*colour[::-1]),
             edge_color=sv.Color.BLACK, radius=7, thickness=1,
@@ -251,49 +255,48 @@ def draw_sidebar(state, team_colours):
     return panel
 
 
-def build_possession_timeline(windows, fps):
-    """Cumulative possession share per team, as a per-frame lookup."""
-    timeline = []
-    for window in sorted(windows.values(), key=lambda w: w["start_frame"]):
-        timeline.append((window["start_frame"], window["end_frame"],
-                         window["team_in_possession"], window["window_num"]))
-    return timeline
+def possession_by_frame(windows):
+    """frame -> (window_num, team), so the render loop does an O(1) lookup.
+
+    Scanning the window list per frame was 158 x 15,000 comparisons for
+    something the data can answer directly.
+    """
+    lookup = {}
+    for window in windows.values():
+        for frame in range(window["start_frame"], window["end_frame"] + 1):
+            lookup[frame] = (window["window_num"], window["team_in_possession"])
+    return lookup
 
 
-def resolve_paths(video_id, start_frame, end_frame):
-    suffix = f"{video_id}_{start_frame:06d}-{end_frame:06d}"
-    return {stage: BASE_DIR / "data" / f"{stage}_output" / f"{suffix}.jsonl" for stage in STAGES}
+def player_label(track_id, identities):
+    """A bare number is a real shirt number; "#" marks a tracker id."""
+    identity = identities.get(track_id)
+    if identity and identity.get("number") is not None:
+        return str(identity["number"])
+    return f"#{track_id}"
 
 
-def render(video_path, video_id, start_frame, end_frame, out_path, team_names, identity_path=None):
-    paths = resolve_paths(video_id, start_frame, end_frame)
-
-    # the identity stage is optional; without it the overlay falls back to raw
-    # track ids, which still read correctly, just not as shirt numbers
-    if identity_path is None:
-        default_identity = (BASE_DIR / "data" / "identity_output" /
-                            f"{video_id}_{start_frame:06d}-{end_frame:06d}.jsonl")
-        if default_identity.exists():
-            identity_path = default_identity
+def render(clip, out_path, team_names, identity_path=None):
+    paths = clip.pipeline_paths()
     missing = [str(p) for p in paths.values() if not p.exists()]
     if missing:
         raise SystemExit("missing pipeline output:\n  " + "\n  ".join(missing))
 
-    cap = cv2.VideoCapture(str(video_path))
-    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
-    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+    # the identity stage is optional; without it the overlay falls back to raw
+    # track ids, which still read correctly, just not as shirt numbers
+    if identity_path is None and clip.stage_path("identity").exists():
+        identity_path = clip.stage_path("identity")
 
     teams = load_jsonl(paths["team_assignment"], "frame")
     windows = load_jsonl(paths["event_detection"], "window_num")
     formations = load_jsonl(paths["formation"], "window")
     metrics = load_jsonl(paths["metrics"], "window")
     transformers = build_transformer_for_frame(paths["keypoint"])
-    timeline = build_possession_timeline(windows, fps)
-    team_colours = sample_team_colours(video_path, paths["tracking"], teams, start_frame)
+    possession = possession_by_frame(windows)
+    team_colours = sample_team_colours(clip.video, paths["tracking"], teams, clip.start)
     for team in (0, 1):
         b, g, r = team_colours[team]
         print(f"  cluster {team} -> {team_names[team]:12s} kit colour #{r:02x}{g:02x}{b:02x}")
-    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
     identities = {}
     if identity_path and Path(identity_path).exists():
@@ -302,35 +305,40 @@ def render(video_path, video_id, start_frame, end_frame, out_path, team_names, i
         named = sum(1 for r in identities.values() if r.get("number") is not None)
         print(f"  identities: {named} of {len(identities)} tracklets carry a shirt number")
 
+    cap = cv2.VideoCapture(str(clip.video))
     out_path.parent.mkdir(parents=True, exist_ok=True)
     writer = cv2.VideoWriter(str(out_path), cv2.VideoWriter_fourcc(*"avc1"),
-                             fps, (CANVAS_W, CANVAS_H))
+                             clip.fps, (CANVAS_W, CANVAS_H))
     if not writer.isOpened():
         raise SystemExit(f"could not open video writer for {out_path}")
 
     possession_frames = defaultdict(int)
     last_transformer = None
-    last_transformer_frame = -10 ** 9
+    last_transformer_frame = None
     written = 0
+    position = clip.start  # frames consumed from the decoder so far
 
     for record in stream_jsonl(paths["tracking"]):
         frame_num = record["frame"]
+
+        # keep the decoder locked to the record being drawn. Reading blindly in
+        # step would silently paint overlays onto the wrong frame if the
+        # tracking output ever had a gap.
+        if frame_num != position + 1:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num - 1)
+            position = frame_num - 1
+
         success, frame = cap.read()
         if not success:
             break
+        position += 1
 
         canvas = np.full((CANVAS_H, CANVAS_W, 3), BG, dtype=np.uint8)
         broadcast = frame.copy()
 
         team_of = {p["track_id"]: p["team"] for p in teams.get(frame_num, {}).get("players", [])}
 
-        # --- current possession window
-        window_num = None
-        in_possession = None
-        for s, e, team, num in timeline:
-            if s <= frame_num <= e:
-                window_num, in_possession = num, team
-                break
+        window_num, in_possession = possession.get(frame_num, (None, None))
         if in_possession is not None:
             possession_frames[in_possession] += 1
         total_possession = sum(possession_frames.values()) or 1
@@ -340,10 +348,11 @@ def render(video_path, video_id, start_frame, end_frame, out_path, team_names, i
         if transformer is not None:
             last_transformer, last_transformer_frame = transformer, frame_num
         stale = False
-        if transformer is None and frame_num - last_transformer_frame <= MAX_HOMOGRAPHY_CARRY:
+        if (transformer is None and last_transformer_frame is not None
+                and frame_num - last_transformer_frame <= MAX_HOMOGRAPHY_CARRY):
             transformer, stale = last_transformer, True
 
-        radar_points = defaultdict(list) if transformer is not None else None
+        radar_points = defaultdict(list)
         ball_point = None
 
         # --- annotate the broadcast frame
@@ -361,19 +370,12 @@ def render(video_path, video_id, start_frame, end_frame, out_path, team_names, i
                 continue
 
             if cls == "Referee":
-                colour, group = REFEREE_COLOUR, "referee"
-                label = "REF"
+                colour, group, label = REFEREE_COLOUR, REFEREE_GROUP, "REF"
             else:
                 team = team_of.get(track_id)
                 colour = team_colours[team] if team in (0, 1) else MUTED
                 group = team if team in (0, 1) else None
-                identity = identities.get(track_id)
-                if identity and identity.get("number") is not None:
-                    # a bare number is a real shirt number; "#" marks a tracker id,
-                    # so the two never get read as the same thing
-                    label = str(identity["number"])
-                else:
-                    label = f"#{track_id}"
+                label = player_label(track_id, identities)
                 if cls == "Goalkeeper":
                     label += " GK"
 
@@ -388,11 +390,12 @@ def render(video_path, video_id, start_frame, end_frame, out_path, team_names, i
                           (foot[0] + tw // 2 + 4, foot[1] + 20), colour, -1)
             text(broadcast, label, foot[0] - tw // 2, foot[1] + 16, 0.42, (20, 20, 20))
 
-            if radar_points is not None and group is not None:
-                radar_points[group].append(transformer.transform_points(np.array([[foot[0], foot[1]]]))[0])
+            if transformer is not None and group is not None:
+                radar_points[group].append(transformer.transform_points(np.array([foot]))[0])
 
         canvas[0:BROADCAST_H, 0:BROADCAST_W] = broadcast
-        canvas[BROADCAST_H:CANVAS_H, 0:RADAR_W] = draw_radar(radar_points, ball_point, stale, team_colours)
+        canvas[BROADCAST_H:CANVAS_H, 0:RADAR_W] = draw_radar(
+            radar_points if transformer is not None else None, ball_point, stale, team_colours)
 
         # --- sidebar state
         formation = formations.get(window_num, {})
@@ -400,14 +403,12 @@ def render(video_path, video_id, start_frame, end_frame, out_path, team_names, i
         top = []
         for entry in sorted(metric.get("window_metrics", []),
                             key=lambda m: -m["distance_covered"])[:5]:
-            tid = entry["track_id"]
-            identity = identities.get(tid)
-            name = str(identity["number"]) if identity and identity.get("number") is not None else f"#{tid}"
-            team = team_of.get(tid)
-            top.append((name, entry["distance_covered"] / 100.0,
+            team = team_of.get(entry["track_id"])
+            top.append((player_label(entry["track_id"], identities),
+                        entry["distance_covered"] / 100.0,
                         team_colours[team] if team in (0, 1) else MUTED))
 
-        seconds = frame_num / fps
+        seconds = frame_num / clip.fps
         people = sum(1 for d in record["detections"] if d["class"] != "Ball")
         state = {
             "title": f"{team_names[0]} vs {team_names[1]}",
@@ -425,8 +426,8 @@ def render(video_path, video_id, start_frame, end_frame, out_path, team_names, i
             "top_distance": top,
             "health": [
                 ("people tracked", str(people), people >= 10),
-                ("ball detected", "yes" if ball_point is not None or
-                 any(d["class"] == "Ball" for d in record["detections"]) else "no", True),
+                ("ball detected",
+                 "yes" if any(d["class"] == "Ball" for d in record["detections"]) else "no", True),
                 ("pitch registration",
                  "locked" if not stale and transformer is not None else
                  "held" if stale else "none", transformer is not None),
@@ -439,18 +440,14 @@ def render(video_path, video_id, start_frame, end_frame, out_path, team_names, i
 
     writer.release()
     cap.release()
-    print(f"wrote {out_path}  ({written} frames, {written / fps:.1f}s)")
+    print(f"wrote {out_path}  ({written} frames, {written / clip.fps:.1f}s)")
     return out_path
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--video", default=str(DEFAULT_VIDEO))
-    parser.add_argument("--video-id", required=True)
-    parser.add_argument("--start", default=None)
-    parser.add_argument("--end", default=None)
-    parser.add_argument("--duration", default=None)
+    Clip.add_arguments(parser)
     parser.add_argument("--out", default=None)
     parser.add_argument("--identity", default=None, help="optional identity_output JSONL")
     parser.add_argument("--team-names", default="Team A,Team B")
@@ -459,22 +456,7 @@ def main():
                              "use this if the names landed on the wrong kits")
     args = parser.parse_args()
 
-    cap = cv2.VideoCapture(args.video)
-    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    cap.release()
-
-    start_frame = parse_position(args.start, fps) or 0
-    if args.duration is not None:
-        end_frame = start_frame + parse_position(args.duration, fps)
-    elif args.end is not None:
-        end_frame = parse_position(args.end, fps)
-    else:
-        end_frame = total
-    end_frame = min(end_frame, total)
-
-    out = Path(args.out) if args.out else (
-        BASE_DIR / "data" / "render_output" / f"{args.video_id}_{start_frame:06d}-{end_frame:06d}.mp4")
+    clip = Clip.from_args(args)
 
     names = [n.strip() for n in args.team_names.split(",")][:2]
     while len(names) < 2:
@@ -482,7 +464,8 @@ def main():
     if args.swap_teams:
         names.reverse()
 
-    render(args.video, args.video_id, start_frame, end_frame, out, names, args.identity)
+    out = Path(args.out) if args.out else clip.stage_path("render", ".mp4")
+    render(clip, out, names, args.identity)
 
 
 if __name__ == "__main__":

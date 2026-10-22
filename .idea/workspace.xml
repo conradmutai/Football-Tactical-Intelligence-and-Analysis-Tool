@@ -4,9 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Added fixed rebuild_files.py">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="527a57a0-5be4-41c9-964c-cb3305b2f038" name="Changes" comment="Fixed tracking.py errors, and created player_identity.py and render_video.py">
+      <change afterPath="$PROJECT_DIR$/config/tracker.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/event_detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/event_detection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/metrics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/player_identity.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/player_identity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/rebuild_files.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/rebuild_files.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/render_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/render_video.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tracking.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tracking.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,23 +56,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.detection.executor": "Run",
-    "Python.event_detection.executor": "Run",
-    "Python.formation.executor": "Run",
-    "Python.homography.executor": "Run",
-    "Python.pitch_detection.executor": "Run",
-    "Python.pitch_keypoints.executor": "Run",
-    "Python.rebuild_files.executor": "Run",
-    "Python.team_assignment.executor": "Run",
-    "Python.tracking.executor": "Run",
-    "Python.video_loader.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.detection.executor&quot;: &quot;Run&quot;,
+    &quot;Python.event_detection.executor&quot;: &quot;Run&quot;,
+    &quot;Python.formation.executor&quot;: &quot;Run&quot;,
+    &quot;Python.homography.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pitch_detection.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pitch_keypoints.executor&quot;: &quot;Run&quot;,
+    &quot;Python.rebuild_files.executor&quot;: &quot;Run&quot;,
+    &quot;Python.team_assignment.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tracking.executor&quot;: &quot;Run&quot;,
+    &quot;Python.video_loader.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/data/keypoint_output" />
@@ -185,9 +191,9 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.event_detection" />
       <item itemvalue="Python.formation" />
       <item itemvalue="Python.rebuild_files" />
-      <item itemvalue="Python.event_detection" />
       <item itemvalue="Python.team_assignment" />
       <item itemvalue="Python.tracking" />
     </list>
@@ -393,7 +399,15 @@
       <option name="project" value="LOCAL" />
       <updated>1787948700160</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="Fixed tracking.py errors, and created player_identity.py and render_video.py">
+      <option name="closed" value="true" />
+      <created>1792673143379</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1792673143379</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -415,6 +429,7 @@
     <MESSAGE value="Fixes complete" />
     <MESSAGE value="Fixed README.md" />
     <MESSAGE value="Added fixed rebuild_files.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added fixed rebuild_files.py" />
+    <MESSAGE value="Fixed tracking.py errors, and created player_identity.py and render_video.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed tracking.py errors, and created player_identity.py and render_video.py" />
   </component>
 </project>

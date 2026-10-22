@@ -35,11 +35,11 @@ def build_trajectory_index(joined_positions: dict, start_frame: int, end_frame: 
                            smoothing_radius: int = TRAJECTORY_SMOOTHING_RADIUS) -> Dict[int, List[tuple]]:
     """Return {track_id: [(frame, position), ...]} for one window.
 
-    This replaces calling get_player_trajectory once per track_id, which
-    re-scanned the whole window for each player and compared every id with `==`
-    instead of a dict lookup. On a 4,482-frame window with 980 track ids that
-    was ~48M operations; both factors grow with clip length, so the old form was
-    effectively quadratic and was the wall for long clips.
+    This replaced a per-track_id scan that walked the whole window for each
+    player and compared every id with `==` instead of a dict lookup. On a
+    4,482-frame window with 980 track ids that was ~48M operations; both factors
+    grow with clip length, so the old form was effectively quadratic and was the
+    wall for long clips.
     """
     index = defaultdict(list)
 
@@ -73,27 +73,6 @@ def smooth_trajectory(trajectory: List[tuple], radius: int) -> List[tuple]:
     ]
 
     return list(zip(frames, smoothed))
-
-
-# determines the players overall trajectory
-def get_player_trajectory(joined_positions: dict, start_frame: int, end_frame: int, track_id: int) -> List[tuple]:
-    # list for storing the tuples after each loop
-    result = []
-
-    # loops over the frames in the window
-    for frame_num in range(start_frame, end_frame + 1):
-        frame_data = joined_positions.get(frame_num)
-
-        if frame_data is None:
-            continue
-
-        # goes over all the frames track ids (players) and positions
-        for f_track_id, positions in frame_data["player_positions"].items():
-            if f_track_id == track_id:  # if the player track id is equal to the player we are looking for then we append result
-                result.append((frame_num, positions))
-
-    # returns the list of track ids and positions
-    return result
 
 
 # computes the distance covered
